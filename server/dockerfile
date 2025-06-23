@@ -22,9 +22,13 @@ USER appuser
 # Expose port
 EXPOSE 4800
 
-# Health check - matches your /health endpoint in server.js
+# Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:4800/health || exit 1
 
-# Start the application
-CMD ["npm", "start"]
+# Start command that adapts to environment
+CMD if [ "$NODE_ENV" = "development" ]; then \
+      npm run dev; \
+    else \
+      npm start; \
+    fi
