@@ -1,0 +1,44 @@
+{
+  // 🔧 Exclude heavy folders from IntelliSense
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/.next": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/build/**": true,
+    "**/.git/objects/**": true
+  },
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/build": true
+  },
+
+  // 🧠 Disable Copilot inline to reduce hover lag
+  "github.copilot.inlineSuggest.enable": true,
+
+  // 🚀 Improve JS/TS language service behavior
+  "javascript.suggest.autoImports": true,
+  "typescript.suggest.autoImports": true,
+  "typescript.tsserver.experimental.enableProjectDiagnostics": true,
+  "typescript.tsserver.log": "off",
+
+  // 🔌 ESLint lighter config
+  "eslint.run": "onSave",
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+
+  // 👀 General performance tips
+  "editor.semanticHighlighting.enabled": true,
+  "editor.quickSuggestionsDelay": 10,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+
+  // 🚫 Disable telemetry and reduce bloat
+  "telemetry.telemetryLevel": "off",
+  "extensions.ignoreRecommendations": false
+}
