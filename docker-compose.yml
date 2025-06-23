@@ -1,0 +1,42 @@
+services:
+  server:
+    build: 
+      context: ./server
+      dockerfile: dockerfile
+    container_name: crowdfund-server
+    ports:
+      - "4800:4800"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=${PORT:-4800}
+      - MONGODB_URI=${MONGODB_URI}
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - crowdfund-network
+
+  client:
+    build: 
+      context: ./client
+      dockerfile: dockerfile
+    container_name: crowdfund-client
+    ports:
+      - "3000:4173"
+    environment:
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:4800}
+    env_file:
+      - .env
+    depends_on:
+      - server
+    restart: unless-stopped
+    networks:
+      - crowdfund-network
+
+networks:
+  crowdfund-network:
+    driver: bridge
+
+volumes:
+  node_modules_server:
+  node_modules_client:

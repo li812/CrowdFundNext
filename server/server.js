@@ -1,3 +1,4 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -14,8 +15,29 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Basic health check route
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
+// Basic API route
+app.get('/api/status', (req, res) => {
+  res.json({ message: 'CrowdFundNext API is running!' });
+});
+
 const PORT = process.env.PORT || 4800;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+
+console.log('CrowdFundNext is running!');
+console.log('Frontend: http://localhost:3000');
+console.log(`Backend API: http://localhost:${PORT}`);
+console.log(`Health Check: http://localhost:${PORT}/health`);
+console.log(`API Status: http://localhost:${PORT}/api/status`);
