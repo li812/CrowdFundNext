@@ -1,0 +1,132 @@
+:root {
+  --glass-bg: rgba(255,255,255,0.7);
+  --primary-text: #1a237e;
+  --accent: #1976d2;
+  --accent-hover: #1565c0;
+  --background: #e3f2fd;
+  --nav-bg: rgba(255,255,255,0.85);
+  --nav-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  --nav-radius: 24px;
+  --nav-link: #1976d2;
+  --nav-link-active: #1565c0;
+  --nav-link-hover: #0d47a1;
+  --toggle-bg: rgba(255,255,255,0.6);
+  --toggle-shadow: 0 2px 8px 0 rgba(31, 38, 135, 0.10);
+}
+
+[data-theme='dark'] {
+  --glass-bg: rgba(30,34,54,0.7);
+  --primary-text: #e3f2fd;
+  --accent: #90caf9;
+  --accent-hover: #64b5f6;
+  --background: #121212;
+  --nav-bg: rgba(30,34,54,0.85);
+  --nav-link: #90caf9;
+  --nav-link-active: #64b5f6;
+  --nav-link-hover: #e3f2fd;
+  --toggle-bg: rgba(30,34,54,0.7);
+}
+
+body, html {
+  background: var(--background);
+  color: var(--primary-text);
+  transition: background 0.3s, color 0.3s;
+}
+
+.navbar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 32px auto 0 auto;
+  max-width: 900px;
+}
+
+.glass-navbar {
+  background: var(--nav-bg);
+  backdrop-filter: blur(16px);
+  border-radius: var(--nav-radius);
+  box-shadow: var(--nav-shadow);
+  padding: 0.5rem 2rem;
+  margin: 0;
+  flex: 1;
+}
+
+.glass-navbar ul {
+  list-style: none;
+  display: flex;
+  gap: 2rem;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+}
+
+.glass-navbar li {
+  display: inline;
+}
+
+.glass-navbar li.right {
+  margin-left: auto;
+}
+
+.glass-navbar a {
+  color: var(--nav-link);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1.1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.glass-navbar a.active,
+.glass-navbar a:focus {
+  background: var(--accent-hover);
+  color: #fff;
+  outline: none;
+}
+
+.glass-navbar a:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.theme-toggle {
+  background: var(--toggle-bg);
+  border: none;
+  border-radius: 50%;
+  box-shadow: var(--toggle-shadow);
+  width: 40px;
+  height: 40px;
+  margin-left: 1rem;
+  cursor: pointer;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s;
+}
+
+.theme-toggle:focus {
+  outline: 2px solid var(--accent);
+}
+
+.glass-content {
+  background: var(--glass-bg);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.10);
+  margin: 32px auto 0 auto;
+  padding: 32px;
+  min-height: 70vh;
+  max-width: 900px;
+  transition: background 0.3s;
+}
+
+@media (max-width: 700px) {
+  .navbar-container, .glass-content {
+    max-width: 98vw;
+    padding: 0 4vw;
+  }
+  .glass-navbar ul {
+    gap: 1rem;
+  }
+}
