@@ -149,7 +149,7 @@ const HomePage = () => {
             <span style={{ fontWeight: 900 }}>CrowdFundNext</span>
             <br />
             <Box component="span" sx={{ fontWeight: 900, background: 'linear-gradient(90deg, #ff4d6d, #3a86ff 80%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              Liquid Glass Crowdfunding
+              Crowd funding
             </Box>
           </Typography>
           <Typography

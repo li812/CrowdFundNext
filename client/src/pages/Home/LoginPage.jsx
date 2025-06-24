@@ -26,17 +26,25 @@ import { auth, googleProvider } from '../../utils/firebase';
 import { motion } from 'framer-motion';
 import { useTheme } from '@mui/material/styles';
 
-// Minimal, modern glassmorphic style
-const glassStyle = (theme) => ({
+// Glassmorphic + 3D glow style
+const glass3DGlowStyle = (theme) => ({
   background: theme.palette.mode === 'dark'
     ? 'rgba(26,34,63,0.92)'
     : 'rgba(255,255,255,0.92)',
-  boxShadow: '0 8px 32px 0 rgba(58, 134, 255, 0.10)',
+  boxShadow: `
+    0 8px 32px 0 rgba(58,134,255,0.10),
+    0 1.5px 8px 0 rgba(26,34,63,0.10),
+    0 2px 24px 0 rgba(58,134,255,0.10),
+    0 0.5px 1.5px 0 rgba(255,255,255,0.18) inset,
+    0 0 32px 8px #3a86ff44
+  `,
   backdropFilter: 'blur(18px) saturate(180%)',
-  borderRadius: '28px',
+  borderRadius: '32px',
   border: '1.5px solid rgba(255,255,255,0.13)',
   overflow: 'hidden',
-  position: 'relative'
+  position: 'relative',
+  transform: 'translateZ(0)',
+  transition: 'box-shadow 0.3s'
 });
 
 const LoginPage = () => {
@@ -106,29 +114,30 @@ const LoginPage = () => {
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
-  // Subtle animated background blobs (not rainbow, just soft blue/mint)
+  // Animated glassy 3D glow blobs (blue/mint, not rainbow)
   const AnimatedBg = () => (
     <>
       <motion.div
-        initial={{ scale: 0.95, opacity: 0.6 }}
-        animate={{ scale: [0.95, 1.05, 0.98, 1], opacity: [0.6, 0.8, 0.7, 0.6] }}
-        transition={{ repeat: Infinity, duration: 12, ease: 'easeInOut' }}
+        initial={{ scale: 0.95, opacity: 0.5 }}
+        animate={{ scale: [0.95, 1.05, 0.98, 1], opacity: [0.5, 0.7, 0.6, 0.5] }}
+        transition={{ repeat: Infinity, duration: 14, ease: 'easeInOut' }}
         style={{
           position: 'absolute',
-          top: '-100px',
-          left: '-100px',
-          width: 320,
-          height: 320,
+          top: '-120px',
+          left: '-120px',
+          width: 340,
+          height: 340,
           zIndex: 0,
           filter: 'blur(80px)',
           borderRadius: '50%',
+          boxShadow: '0 0 64px 16px #3a86ff33',
           opacity: 0.7,
         }}
       />
       <motion.div
-        initial={{ scale: 1, opacity: 0.4 }}
-        animate={{ scale: [1, 1.08, 0.98, 1], opacity: [0.4, 0.7, 0.5, 0.4] }}
-        transition={{ repeat: Infinity, duration: 14, ease: 'easeInOut', delay: 2 }}
+        initial={{ scale: 1, opacity: 0.3 }}
+        animate={{ scale: [1, 1.08, 0.98, 1], opacity: [0.3, 0.6, 0.4, 0.3] }}
+        transition={{ repeat: Infinity, duration: 16, ease: 'easeInOut', delay: 2 }}
         style={{
           position: 'absolute',
           bottom: '-80px',
@@ -138,6 +147,7 @@ const LoginPage = () => {
           zIndex: 0,
           filter: 'blur(60px)',
           borderRadius: '50%',
+          boxShadow: '0 0 32px 8px #36f1cd33',
           opacity: 0.5,
         }}
       />
@@ -148,7 +158,6 @@ const LoginPage = () => {
     <Box
       sx={{
         minHeight: '100vh',
-        width: '100%',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -161,8 +170,8 @@ const LoginPage = () => {
         <Paper
           elevation={0}
           sx={{
-            ...glassStyle(theme),
-            maxWidth: 400,
+            ...glass3DGlowStyle(theme),
+            maxWidth: 410,
             width: '100%',
             mx: 'auto',
             p: { xs: 3, sm: 5 },
@@ -170,7 +179,17 @@ const LoginPage = () => {
             zIndex: 1,
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'center'
+            alignItems: 'center',
+            // 3D effect: subtle perspective and glow
+            transform: { xs: 'none', md: 'perspective(1200px) rotateX(2deg) scale(1.01)' },
+            boxShadow: `
+              0 8px 32px 0 rgba(58,134,255,0.10),
+              0 1.5px 8px 0 rgba(26,34,63,0.10),
+              0 2px 24px 0 rgba(58,134,255,0.10),
+              0 0.5px 1.5px 0 rgba(255,255,255,0.18) inset,
+              0 0 32px 8px #3a86ff44,
+              0 24px 48px 0 #1a223f11
+            `
           }}
           component={motion.form}
           initial={{ opacity: 0, y: 60 }}
@@ -184,7 +203,8 @@ const LoginPage = () => {
             sx={{
               color: theme.palette.primary.main,
               mb: 1,
-              letterSpacing: '-1.2px'
+              letterSpacing: '-1.2px',
+              textShadow: '0 2px 12px #3a86ff22'
             }}
           >
             Sign in to CrowdFundNext
@@ -218,10 +238,12 @@ const LoginPage = () => {
               color: '#3a86ff',
               fontWeight: 700,
               letterSpacing: 0.5,
+              background: 'rgba(58,134,255,0.03)',
+              boxShadow: '0 2px 8px 0 #3a86ff11',
               '&:hover': {
                 borderColor: '#36f1cd',
                 color: '#36f1cd',
-                bgcolor: 'rgba(58,134,255,0.04)'
+                bgcolor: 'rgba(58,134,255,0.06)'
               }
             }}
           >
@@ -313,12 +335,18 @@ const LoginPage = () => {
               borderRadius: 2.5,
               background: theme.palette.primary.main,
               color: theme.palette.getContrastText(theme.palette.primary.main),
-              boxShadow: '0 4px 24px 0 #3a86ff22',
+              boxShadow: `
+                0 4px 24px 0 #3a86ff22,
+                0 0 16px 4px #3a86ff44
+              `,
               letterSpacing: 1,
               '&:hover': {
                 background: theme.palette.secondary.main,
                 color: theme.palette.getContrastText(theme.palette.secondary.main),
-                boxShadow: '0 8px 32px 0 #36f1cd33',
+                boxShadow: `
+                  0 8px 32px 0 #36f1cd33,
+                  0 0 32px 8px #36f1cd44
+                `,
                 transform: 'scale(1.03)',
               }
             }}
