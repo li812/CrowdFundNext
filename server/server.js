@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('./scripts/initFirebaseAdmin');
 const mongoose = require('mongoose');
 const express = require('express');
 const bodyParser = require('body-parser');

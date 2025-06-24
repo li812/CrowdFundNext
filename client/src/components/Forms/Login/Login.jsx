@@ -18,6 +18,8 @@ import {
   Google
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from '../../../utils/firebase';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -71,18 +73,15 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      // TODO: Implement Firebase email/password login
-      console.log('Email login:', formData);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // TODO: Handle successful login
-      // navigate('/dashboard'); // or wherever users should go after login
+      // Firebase email/password login
+      await signInWithEmailAndPassword(auth, formData.email, formData.password);
+      const token = await auth.currentUser.getIdToken();
+      localStorage.setItem('jwt', token); // Store token for API use
+      // Optionally, fetch user type from backend and redirect accordingly
+      navigate('/'); // or your dashboard route
       
     } catch (error) {
-      console.error('Login error:', error);
-      setErrors({ general: 'Login failed. Please check your credentials.' });
+      setErrors({ general: error.message || 'Login failed. Please check your credentials.' });
     } finally {
       setIsLoading(false);
     }
@@ -92,18 +91,15 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      // TODO: Implement Firebase Google login
-      console.log('Google login triggered');
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // TODO: Handle successful login
-      // navigate('/dashboard');
+      // Firebase Google login
+      await signInWithPopup(auth, googleProvider);
+      const token = await auth.currentUser.getIdToken();
+      localStorage.setItem('jwt', token); // Store token for API use
+      // Optionally, fetch user type from backend and redirect accordingly
+      navigate('/'); // or your dashboard route
       
     } catch (error) {
-      console.error('Google login error:', error);
-      setErrors({ general: 'Google login failed. Please try again.' });
+      setErrors({ general: error.message || 'Google login failed. Please try again.' });
     } finally {
       setIsLoading(false);
     }
