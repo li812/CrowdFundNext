@@ -16,6 +16,7 @@ import AdminHome from './pages/Admin/AdminHome';
 import AdminSettings from './pages/Admin/AdminSettings';
 import UserHome from './pages/Users/UserHome';
 import UserSettings from './pages/Users/UserSettings';
+import { useThemeMode } from './context/ThemeContext';
 
 const theme = createTheme({
   palette: {
@@ -70,6 +71,8 @@ function RoleRedirect() {
 }
 
 function App() {
+  const { theme } = useThemeMode();
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />

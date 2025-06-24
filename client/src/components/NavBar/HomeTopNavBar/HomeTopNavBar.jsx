@@ -17,10 +17,13 @@ import {
   Menu as MenuIcon,
   AccountCircle,
   Search,
-  Add
+  Add,
+  Brightness4,
+  Brightness7
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../../context/UserContext';
+import { useThemeMode } from '../../../context/ThemeContext';
 
 // Helper to decode JWT and get user info
 function getUserFromJWT() {
@@ -47,6 +50,7 @@ const HomeTopNavBar = () => {
   const navigate = useNavigate();
 
   const profile = useUser();
+  const { mode, toggleTheme } = useThemeMode();
 
   // Determine avatar source
   let avatarSrc = undefined;
@@ -90,7 +94,15 @@ const HomeTopNavBar = () => {
   ];
 
   return (
-    <AppBar position="fixed" sx={{ bgcolor: 'white', color: 'black', boxShadow: 1, zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+    <AppBar
+      position="fixed"
+      sx={{
+        bgcolor: (theme) => theme.palette.background.paper,
+        color: (theme) => theme.palette.text.primary,
+        boxShadow: 1,
+        zIndex: (theme) => theme.zIndex.drawer + 1
+      }}
+    >
       <Container maxWidth="lg">
         <Toolbar>
           {/* Logo */}
@@ -116,9 +128,9 @@ const HomeTopNavBar = () => {
                 <Button
                   key={item.label}
                   onClick={() => navigate(item.path)}
-                  sx={{ 
-                    color: 'black',
-                    '&:hover': { color: '#1976d2' }
+                  color="inherit"
+                  sx={{
+                    '&:hover': { color: 'primary.main' }
                   }}
                 >
                   {item.label}
@@ -143,6 +155,11 @@ const HomeTopNavBar = () => {
 
           {/* Right side buttons */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {/* Theme toggle button */}
+            <IconButton onClick={toggleTheme} color="inherit">
+              {mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
+            </IconButton>
+            
             <IconButton color="inherit">
               <Search />
             </IconButton>
