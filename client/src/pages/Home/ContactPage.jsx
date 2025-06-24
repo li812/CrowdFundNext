@@ -1,21 +1,12 @@
-import React from 'react';
-import { Container, Typography, Box } from '@mui/material';
-import HomeTopNavBar from '../../components/NavBar/HomeTopNavBar/HomeTopNavBar';
+import React from 'react'
 
-const ContactPage = () => {
+function ContactPage() {
   return (
-    <Box>
-      <HomeTopNavBar />
-      <Container maxWidth="md" sx={{ py: 8 }}>
-        <Typography variant="h4" component="h1" textAlign="center" gutterBottom>
-          Contact Us
-        </Typography>
-        <Typography variant="body1" textAlign="center" sx={{ mt: 2 }}>
-          Get in touch with our support team.
-        </Typography>
-      </Container>
-    </Box>
-  );
-};
+    <div>
+      <h1>Contact Us</h1>
+      <p>If you have any questions, feel free to reach out!</p>
+    </div>
+  )
+}
 
-export default ContactPage;
+export default ContactPage

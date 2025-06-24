@@ -1,17 +1,12 @@
-import React from 'react';
-import { Container, Box } from '@mui/material';
-import HomeTopNavBar from '../../components/NavBar/HomeTopNavBar/HomeTopNavBar';
-import Login from '../../components/Forms/Login/Login';
+import React from 'react'
 
-const LoginPage = () => {
+function LoginPage() {
   return (
-    <Box>
-      <HomeTopNavBar />
-      <Container maxWidth="sm" sx={{ py: 8 }}>
-        <Login />
-      </Container>
-    </Box>
-  );
-};
+    <div>
+      <h1>Login to CrowdFundNext</h1>
+      <p>Please enter your credentials to access your account.</p>
+    </div>
+  )
+}
 
-export default LoginPage;
+export default LoginPage

@@ -1,12 +1,12 @@
 import React from 'react'
 
-function HomePage() {
+function HomeBase() {
   return (
     <div>
-      <h1>Welcome to CrowdFundNext</h1>
+      <h1>CrowdFundNext</h1>
       <p>Your one-stop platform for innovative crowdfunding.</p>
     </div>
   )
 }
 
-export default HomePage
+export default HomeBase

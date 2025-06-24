@@ -1,44 +1,23 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import HomePage from './pages/Home/HomePage';
-import LoginPage from './pages/Home/LoginPage';
-import RegisterPage from './pages/Home/RegisterPage';
-import AboutPage from './pages/Home/AboutPage';
-import ContactPage from './pages/Home/ContactPage';
-import ExplorePage from './pages/Home/ExplorePage';
-
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#1976d2',
-    },
-    secondary: {
-      main: '#ff6b6b',
-    },
-  },
-  typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-  },
-});
+import React, { useState } from 'react'
+import HomeBase from './pages/Home/HomeBase'
+import UserBase from './pages/User/UserBase'
+import AdminBase from './pages/Admin/AdminBase'
 
 function App() {
+  const [userType, setUserType] = useState(null)
+
+  let RenderComponent
+  if (userType === 'admin') {
+    RenderComponent = AdminBase
+  } else if (userType === 'user') {
+    RenderComponent = UserBase
+  } else {
+    RenderComponent = HomeBase
+  }
+
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Router>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/explore" element={<ExplorePage />} />
-        </Routes>
-      </Router>
-    </ThemeProvider>
-  );
+    <RenderComponent />
+  )
 }
 
-export default App;
+export default App

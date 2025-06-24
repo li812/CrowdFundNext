@@ -1,21 +1,12 @@
-import React from 'react';
-import { Container, Typography, Box } from '@mui/material';
-import HomeTopNavBar from '../../components/NavBar/HomeTopNavBar/HomeTopNavBar';
+import React from 'react'
 
-const AboutPage = () => {
+function AboutPage() {
   return (
-    <Box>
-      <HomeTopNavBar />
-      <Container maxWidth="md" sx={{ py: 8 }}>
-        <Typography variant="h4" component="h1" textAlign="center" gutterBottom>
-          About CrowdFundNext
-        </Typography>
-        <Typography variant="body1" textAlign="center" sx={{ mt: 2 }}>
-          Learn more about our crowdfunding platform mission and vision.
-        </Typography>
-      </Container>
-    </Box>
-  );
-};
+    <div>
+      <h1>About CrowdFundNext</h1>
+      <p>CrowdFundNext is a platform that connects innovators with supporters.</p>
+    </div>
+  )
+}
 
-export default AboutPage;
+export default AboutPage

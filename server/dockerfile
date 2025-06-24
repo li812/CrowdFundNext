@@ -2,33 +2,11 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package files
 COPY package*.json ./
-
-# Install dependencies
 RUN npm install
 
-# Copy source code
 COPY . .
 
-# Create a non-root user for security
-RUN addgroup -g 1001 -S appgroup
-RUN adduser -S appuser -u 1001
-
-# Change ownership of the app directory
-RUN chown -R appuser:appgroup /app
-USER appuser
-
-# Expose port
 EXPOSE 4800
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:4800/health || exit 1
-
-# Start command that adapts to environment
-CMD if [ "$NODE_ENV" = "development" ]; then \
-      npm run dev; \
-    else \
-      npm start; \
-    fi
+CMD ["npm", "run", "dev"]
