@@ -79,13 +79,12 @@ const Login = () => {
       localStorage.setItem('jwt', token);
 
       const payload = JSON.parse(atob(token.split('.')[1]));
-      if (payload.userType === 'admin') {
-        navigate('/admin');
-      } else if (payload.userType === 'user') {
-        navigate('/user');
-      } else {
-        navigate('/');
-      }
+      window.location.href =
+        payload.userType === 'admin'
+          ? '/admin'
+          : payload.userType === 'user'
+          ? '/user'
+          : '/';
       
     } catch (error) {
       setErrors({ general: error.message || 'Login failed. Please check your credentials.' });
