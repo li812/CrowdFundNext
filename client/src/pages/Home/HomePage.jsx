@@ -1,24 +1,24 @@
 import React from 'react';
-import { Box, Container, Typography, Button, Grid, Card, CardContent, useTheme } from '@mui/material';
-import { TrendingUp, Security, People, Favorite } from '@mui/icons-material';
+import { Box, Container, Typography, Button, Grid, Card, CardContent, useTheme, Stack, Chip } from '@mui/material';
+import { TrendingUp, Security, People, Favorite, RocketLaunch, EmojiObjects, Diversity3, Star } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 
 // Glassmorphic & liquid helpers
 const glassStyle = (theme) => ({
   background: theme.palette.mode === 'dark'
     ? 'rgba(26,34,63,0.65)'
-    : 'rgba(255,255,255,0.45)',
-  boxShadow: '0 8px 32px 0 rgba(58, 134, 255, 0.18)',
-  backdropFilter: 'blur(18px) saturate(180%)',
-  borderRadius: '32px',
+    : 'rgba(215, 215, 215, 0.51)',
+  boxShadow: '0 12px 48px 0 rgba(58, 134, 255, 0.18)',
+  backdropFilter: 'blur(24px) saturate(180%)',
+  borderRadius: '36px',
   border: '1.5px solid rgba(255,255,255,0.18)',
   overflow: 'hidden',
   position: 'relative'
 });
 const liquidBg = (theme) =>
   theme.palette.mode === 'dark'
-    ? 'radial-gradient(ellipse at 60% 40%, #3a86ff33 0%, #1a223f 100%)'
-    : 'radial-gradient(ellipse at 60% 40%, #36f1cd33 0%, #f4f6fb 100%)';
+    ? 'radial-gradient(ellipse at 60% 40%, #3a86ff44 0%, #1a223f 100%)'
+    : 'radial-gradient(ellipse at 60% 40%, #36f1cd44 0%, #f4f6fb 100%)';
 
 const heroGradient = (theme) =>
   theme.palette.mode === 'dark'
@@ -43,31 +43,37 @@ const HomePage = () => {
     })
   };
 
+  // Award-level features
   const features = [
     {
-      icon: <TrendingUp sx={{ fontSize: 48, color: theme.palette.primary.main }} />,
-      title: 'Instant Campaigns',
-      description: 'Launch your project in seconds with our ultra-fast, intuitive setup.'
+      icon: <RocketLaunch sx={{ fontSize: 48, color: theme.palette.primary.main }} />,
+      title: 'Launch in Seconds',
+      description: 'Start a campaign with just a few clicks. No friction, no fuss.'
     },
     {
-      icon: <Security sx={{ fontSize: 48, color: theme.palette.secondary.main }} />,
-      title: 'Bank-Grade Security',
-      description: 'Your funds and data are protected with industry-leading encryption.'
+      icon: <EmojiObjects sx={{ fontSize: 48, color: theme.palette.secondary.main }} />,
+      title: 'For Creators & Dreamers',
+      description: 'Perfect for students, makers, and visionaries. Bring your ideas to life.'
     },
     {
-      icon: <People sx={{ fontSize: 48, color: theme.palette.accent.main }} />,
-      title: 'Vibrant Community',
-      description: 'Connect, collaborate, and grow with a global network of changemakers.'
+      icon: <Diversity3 sx={{ fontSize: 48, color: theme.palette.accent.main }} />,
+      title: 'Community-Powered',
+      description: 'Grow with a global community that believes in your mission.'
     },
     {
-      icon: <Favorite sx={{ fontSize: 48, color: theme.palette.warning.main }} />,
-      title: 'Recurring Support',
-      description: 'Enable monthly donations and build lasting impact for your cause.'
+      icon: <Star sx={{ fontSize: 48, color: theme.palette.warning.main }} />,
+      title: 'Transparent & Trusted',
+      description: 'Bank-grade security, transparent progress, and real-time updates.'
     }
   ];
 
+  // Trending tags for extra modern touch
+  const trendingTags = [
+    'Tech', 'Education', 'Health', 'Art', 'Social Good', 'Environment', 'Startups', 'Student Life'
+  ];
+
   return (
-    <Box sx={{ minHeight: '100vh', background: 'rgba(0,0,0,0)', pb: 8, overflow: 'hidden' }}>
+    <Box sx={{ minHeight: '100vh', background: glassStyle(theme), pb: 8, overflow: 'hidden' }}>
       {/* Hero Section */}
       <Box
         component={motion.section}
@@ -78,11 +84,11 @@ const HomePage = () => {
           ...glassStyle(theme),
           mt: { xs: 10, md: 14 },
           mx: 'auto',
-          maxWidth: 1100,
-          py: { xs: 8, md: 14 },
-          px: { xs: 2, md: 10 },
+          maxWidth: 1200,
+          py: { xs: 10, md: 16 },
+          px: { xs: 2, md: 12 },
           textAlign: 'center',
-          mb: 10,
+          mb: 12,
           position: 'relative',
         }}
       >
@@ -93,13 +99,13 @@ const HomePage = () => {
           transition={{ repeat: Infinity, duration: 10, ease: 'easeInOut' }}
           style={{
             position: 'absolute',
-            top: '-120px',
-            left: '-120px',
-            width: 420,
-            height: 420,
+            top: '-140px',
+            left: '-140px',
+            width: 480,
+            height: 480,
             zIndex: 0,
-            background: 'radial-gradient(circle at 60% 40%, #3a86ff88 0%, #36f1cdcc 100%)',
-            filter: 'blur(90px)',
+            background: 'radial-gradient(circle at 60% 40%, #3a86ff99 0%, #36f1cdcc 100%)',
+            filter: 'blur(120px)',
             borderRadius: '50%',
             opacity: 0.7,
           }}
@@ -110,13 +116,13 @@ const HomePage = () => {
           transition={{ repeat: Infinity, duration: 12, ease: 'easeInOut', delay: 2 }}
           style={{
             position: 'absolute',
-            bottom: '-100px',
-            right: '-100px',
-            width: 340,
-            height: 340,
+            bottom: '-120px',
+            right: '-120px',
+            width: 380,
+            height: 380,
             zIndex: 0,
-            background: 'radial-gradient(circle at 40% 60%, #ff4d6d88 0%, #ffe066cc 100%)',
-            filter: 'blur(80px)',
+            background: 'radial-gradient(circle at 40% 60%, #ff4d6d99 0%, #ffe066cc 100%)',
+            filter: 'blur(100px)',
             borderRadius: '50%',
             opacity: 0.6,
           }}
@@ -133,16 +139,17 @@ const HomePage = () => {
               background: heroGradient(theme),
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              fontSize: { xs: '2.8rem', md: '4.5rem' },
+              fontSize: { xs: '2.9rem', md: '4.7rem' },
               mb: 2,
-              letterSpacing: '-2px',
-              lineHeight: 1.1,
-              textShadow: '0 2px 24px #36f1cd33'
+              letterSpacing: '-2.5px',
+              lineHeight: 1.08,
+              textShadow: '0 2px 32px #36f1cd33'
             }}
           >
-            The Future of Crowdfunding is <br />
+            <span style={{ fontWeight: 900 }}>CrowdFundNext</span>
+            <br />
             <Box component="span" sx={{ fontWeight: 900, background: 'linear-gradient(90deg, #ff4d6d, #3a86ff 80%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              Liquid & Limitless
+              Liquid Glass Crowdfunding
             </Box>
           </Typography>
           <Typography
@@ -155,12 +162,34 @@ const HomePage = () => {
               mb: 5,
               color: theme.palette.text.secondary,
               fontWeight: 500,
-              fontSize: { xs: '1.1rem', md: '1.5rem' },
+              fontSize: { xs: '1.2rem', md: '1.7rem' },
               letterSpacing: '0.5px'
             }}
           >
-            Empower your ideas, projects, and dreams with the world’s most advanced, student-friendly crowdfunding platform.
+            The world’s most advanced, student-friendly crowdfunding platform. <br />
+            <span style={{ color: theme.palette.accent.main, fontWeight: 700 }}>Empower. Create. Inspire.</span>
           </Typography>
+          {/* Trending tags */}
+          <Stack direction="row" spacing={1} justifyContent="center" sx={{ mb: 4, flexWrap: 'wrap' }}>
+            {trendingTags.map(tag => (
+              <Chip
+                key={tag}
+                label={tag}
+                color="primary"
+                variant="outlined"
+                sx={{
+                  bgcolor: 'rgba(255,255,255,0.18)',
+                  fontWeight: 600,
+                  fontSize: '1rem',
+                  borderRadius: 2,
+                  borderColor: theme.palette.primary.main,
+                  color: theme.palette.primary.main,
+                  mr: 1, mb: 1,
+                  '&:hover': { bgcolor: 'rgba(58,134,255,0.10)' }
+                }}
+              />
+            ))}
+          </Stack>
           <Box
             component={motion.div}
             initial={{ opacity: 0, y: 20 }}
@@ -177,14 +206,14 @@ const HomePage = () => {
                 px: 5,
                 py: 1.7,
                 fontSize: '1.2rem',
-                borderRadius: 12,
+                borderRadius: 16,
                 boxShadow: '0 4px 32px 0 #ff4d6d44',
                 fontWeight: 700,
                 letterSpacing: 1,
                 transition: 'transform 0.2s',
                 '&:hover': {
                   bgcolor: theme.palette.accent.dark || '#d13a54',
-                  transform: 'scale(1.06)',
+                  transform: 'scale(1.07)',
                   boxShadow: '0 8px 40px 0 #ff4d6d66',
                 },
               }}
@@ -200,7 +229,7 @@ const HomePage = () => {
                 px: 5,
                 py: 1.7,
                 fontSize: '1.2rem',
-                borderRadius: 12,
+                borderRadius: 16,
                 background: 'rgba(255,255,255,0.18)',
                 backdropFilter: 'blur(8px)',
                 fontWeight: 700,
@@ -209,7 +238,7 @@ const HomePage = () => {
                 '&:hover': {
                   borderColor: theme.palette.primary.dark,
                   background: 'rgba(58,134,255,0.10)',
-                  transform: 'scale(1.06)',
+                  transform: 'scale(1.07)',
                 },
               }}
             >
@@ -235,9 +264,9 @@ const HomePage = () => {
             background: heroGradient(theme),
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
-            fontSize: { xs: '2rem', md: '2.8rem' },
+            fontSize: { xs: '2.2rem', md: '3rem' },
             mb: 2,
-            letterSpacing: '-1px'
+            letterSpacing: '-1.5px'
           }}
         >
           Why CrowdFundNext?
@@ -279,6 +308,7 @@ const HomePage = () => {
                   transition: 'box-shadow 0.3s',
                   '&:hover': {
                     boxShadow: '0 16px 48px 0 #3a86ff44',
+                    transform: 'scale(1.05)'
                   }
                 }}
               >
@@ -370,13 +400,13 @@ const HomePage = () => {
               px: 5,
               py: 1.7,
               fontSize: '1.2rem',
-              borderRadius: 12,
+              borderRadius: 16,
               boxShadow: '0 4px 24px 0 #3a86ff44',
               fontWeight: 700,
               '&:hover': {
                 bgcolor: theme.palette.primary.dark,
                 boxShadow: '0 8px 32px 0 #3a86ff88',
-                transform: 'scale(1.06)',
+                transform: 'scale(1.07)',
               },
             }}
           >

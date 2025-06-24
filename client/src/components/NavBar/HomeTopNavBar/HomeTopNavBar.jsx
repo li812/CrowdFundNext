@@ -11,36 +11,47 @@ import {
   Avatar,
   useMediaQuery,
   useTheme,
-  Container
+  Container,
+  Slide,
+  Paper,
+  Stack,
+  Tooltip,
+  Divider
 } from '@mui/material';
 import {
   Menu as MenuIcon,
-  AccountCircle,
   Search,
   Add,
   Brightness4,
-  Brightness7
+  Brightness7,
+  Home as HomeIcon,
+  Explore as ExploreIcon,
+  Info as InfoIcon,
+  ContactMail as ContactIcon,
+  AccountCircle
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../../context/UserContext';
 import { useThemeMode } from '../../../context/ThemeContext';
 
-// Helper to decode JWT and get user info
-function getUserFromJWT() {
-  const token = localStorage.getItem('jwt');
-  if (!token) return null;
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return {
-      userType: payload.userType,
-      email: payload.email,
-      name: payload.name,
-      picture: payload.picture // If you store a photoURL in custom claims
-    };
-  } catch {
-    return null;
-  }
-}
+// Award-winning glassmorphic nav style
+const glassNavStyle = (theme) => ({
+  background: theme.palette.mode === 'dark'
+    ? 'rgba(26,34,63,0.85)'
+    : 'rgba(255,255,255,0.85)',
+  boxShadow: '0 8px 32px 0 rgba(58, 134, 255, 0.12)',
+  backdropFilter: 'blur(18px) saturate(180%)',
+  borderRadius: '0 0 32px 32px',
+  borderBottom: '1.5px solid rgba(255,255,255,0.18)',
+  transition: 'background 0.3s'
+});
+
+const navLinks = [
+  { label: 'Home', path: '/', icon: <HomeIcon /> },
+  { label: 'Explore', path: '/explore', icon: <ExploreIcon /> },
+  { label: 'About', path: '/about', icon: <InfoIcon /> },
+  { label: 'Contact', path: '/contact', icon: <ContactIcon /> }
+];
 
 const HomeTopNavBar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -52,33 +63,24 @@ const HomeTopNavBar = () => {
   const profile = useUser();
   const { mode, toggleTheme } = useThemeMode();
 
-  // Determine avatar source
+  // Avatar logic
   let avatarSrc = undefined;
   if (profile?.userType === 'admin') {
-    avatarSrc = '/images/admin.png'; // This will resolve to public/images/admin.png
+    avatarSrc = '/images/admin.png';
   } else if (profile?.profilePicture) {
     avatarSrc = `${import.meta.env.VITE_API_URL}${profile.profilePicture}`;
   }
 
-  const handleProfileMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMobileMenuOpen = (event) => {
-    setMobileMenuAnchor(event.currentTarget);
-  };
-
+  const handleProfileMenuOpen = (event) => setAnchorEl(event.currentTarget);
+  const handleMobileMenuOpen = (event) => setMobileMenuAnchor(event.currentTarget);
   const handleMenuClose = () => {
     setAnchorEl(null);
     setMobileMenuAnchor(null);
   };
 
   const handleDashboard = () => {
-    if (profile?.userType === 'admin') {
-      navigate('/admin');
-    } else if (profile?.userType === 'user') {
-      navigate('/user');
-    }
+    if (profile?.userType === 'admin') navigate('/admin');
+    else if (profile?.userType === 'user') navigate('/user');
   };
 
   const handleLogout = () => {
@@ -86,170 +88,239 @@ const HomeTopNavBar = () => {
     window.location.reload();
   };
 
-  const menuItems = [
-    { label: 'Home', path: '/' },
-    { label: 'Explore', path: '/explore' },
-    { label: 'About', path: '/about' },
-    { label: 'Contact', path: '/contact' }
-  ];
+  // Award-level logo with gradient
+  const Logo = (
+    <Typography
+      variant="h4"
+      component="div"
+      sx={{
+        flexGrow: 0,
+        mr: 4,
+        fontWeight: 900,
+        letterSpacing: '-1.5px',
+        cursor: 'pointer',
+        background: theme.palette.gradient,
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        fontFamily: '"Montserrat", "Roboto", "Helvetica", "Arial", sans-serif'
+      }}
+      onClick={() => navigate('/')}
+    >
+      CrowdFundNext
+    </Typography>
+  );
 
   return (
-    <AppBar
-      position="fixed"
-      sx={{
-        bgcolor: (theme) => theme.palette.background.paper,
-        color: (theme) => theme.palette.text.primary,
-        boxShadow: 1,
-        zIndex: (theme) => theme.zIndex.drawer + 1
-      }}
-    >
-      <Container maxWidth="lg">
-        <Toolbar>
-          {/* Logo */}
-          <Typography 
-            variant="h6" 
-            component="div" 
-            sx={{ 
-              flexGrow: 0, 
-              mr: 4,
-              fontWeight: 'bold',
-              color: '#1976d2',
-              cursor: 'pointer'
-            }}
-            onClick={() => navigate('/')}
-          >
-            CrowdFundNext
-          </Typography>
+    <Slide appear in direction="down">
+      <AppBar
+        position="fixed"
+        elevation={0}
+        sx={{
+          ...glassNavStyle(theme),
+          color: theme.palette.text.primary,
+          zIndex: (theme) => theme.zIndex.drawer + 2,
+          minHeight: 72,
+        }}
+      >
+        <Container maxWidth="lg" disableGutters>
+          <Toolbar sx={{ minHeight: 72, px: { xs: 1, sm: 2 } }}>
+            {/* Logo */}
+            {Logo}
 
-          {/* Desktop Navigation */}
-          {!isMobile && (
-            <Box sx={{ flexGrow: 1, display: 'flex', gap: 3 }}>
-              {menuItems.map((item) => (
-                <Button
-                  key={item.label}
-                  onClick={() => navigate(item.path)}
+            {/* Desktop Navigation */}
+            {!isMobile && (
+              <Stack direction="row" spacing={2} sx={{ flexGrow: 1 }}>
+                {navLinks.map((item) => (
+                  <Button
+                    key={item.label}
+                    onClick={() => navigate(item.path)}
+                    startIcon={item.icon}
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: '1.1rem',
+                      color: theme.palette.text.primary,
+                      px: 2,
+                      py: 1,
+                      borderRadius: 2,
+                      background: 'transparent',
+                      transition: 'background 0.2s, color 0.2s',
+                      '&:hover': {
+                        background: theme.palette.mode === 'dark'
+                          ? 'rgba(58,134,255,0.08)'
+                          : 'rgba(58,134,255,0.10)',
+                        color: theme.palette.primary.main
+                      }
+                    }}
+                  >
+                    {item.label}
+                  </Button>
+                ))}
+              </Stack>
+            )}
+
+            {/* Mobile Navigation */}
+            {isMobile && (
+              <Box sx={{ flexGrow: 1 }}>
+                <IconButton
+                  edge="start"
                   color="inherit"
-                  sx={{
-                    '&:hover': { color: 'primary.main' }
-                  }}
+                  aria-label="menu"
+                  onClick={handleMobileMenuOpen}
+                  sx={{ ml: 1 }}
                 >
-                  {item.label}
-                </Button>
-              ))}
-            </Box>
-          )}
+                  <MenuIcon />
+                </IconButton>
+              </Box>
+            )}
 
-          {/* Mobile Navigation */}
-          {isMobile && (
-            <Box sx={{ flexGrow: 1 }}>
-              <IconButton
-                edge="start"
-                color="inherit"
-                aria-label="menu"
-                onClick={handleMobileMenuOpen}
-              >
-                <MenuIcon />
-              </IconButton>
-            </Box>
-          )}
+            {/* Right side buttons */}
+            <Stack direction="row" spacing={1} alignItems="center">
 
-          {/* Right side buttons */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {/* Theme toggle button */}
-            <IconButton onClick={toggleTheme} color="inherit">
-              {mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
-            </IconButton>
-            
-            <IconButton color="inherit">
-              <Search />
-            </IconButton>
-            
-            <Button
-              variant="contained"
-              startIcon={<Add />}
-              sx={{
-                bgcolor: '#ff6b6b',
-                '&:hover': { bgcolor: '#ff5252' },
-                display: { xs: 'none', sm: 'flex' }
+
+
+              {/* User Avatar/Profile */}
+              {profile ? (
+                <>
+                  <Tooltip title="Account">
+                    <IconButton onClick={handleProfileMenuOpen} sx={{ p: 0 }}>
+                      <Avatar
+                        alt={profile?.firstName || profile?.email}
+                        src={avatarSrc}
+                        sx={{
+                          width: 44,
+                          height: 44,
+                          bgcolor: 'rgba(58,134,255,0.12)',
+                          color: theme.palette.primary.main,
+                          fontWeight: 700,
+                          fontSize: '1.2rem'
+                        }}
+                      >
+                        {profile?.firstName ? profile.firstName[0] : (profile?.email ? profile.email[0] : <AccountCircle />)}
+                      </Avatar>
+                    </IconButton>
+                  </Tooltip>
+                  <Menu
+                    anchorEl={anchorEl}
+                    open={Boolean(anchorEl)}
+                    onClose={handleMenuClose}
+                    PaperProps={{
+                      sx: {
+                        ...glassNavStyle(theme),
+                        mt: 1.5,
+                        minWidth: 180,
+                        boxShadow: '0 8px 32px 0 #3a86ff22'
+                      }
+                    }}
+                  >
+                    <MenuItem onClick={() => { handleMenuClose(); handleDashboard(); }}>
+                      Dashboard
+                    </MenuItem>
+                    <Divider />
+                    <MenuItem onClick={handleLogout}>
+                      Logout
+                    </MenuItem>
+                  </Menu>
+                </>
+
+              ) : (
+                <>
+                  <Button
+                    variant="outlined"
+                    onClick={() => navigate('/register')}
+                    sx={{
+                      borderColor: theme.palette.primary.main,
+                      color: theme.palette.primary.main,
+                      fontWeight: 700,
+                      borderRadius: 3,
+                      px: 2.5,
+                      '&:hover': {
+                        borderColor: theme.palette.primary.dark,
+                        background: 'rgba(58,134,255,0.08)'
+                      }
+                    }}
+                  >
+                    Register
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={() => navigate('/login')}
+                    sx={{
+                      borderColor: theme.palette.primary.main,
+                      color: theme.palette.primary.main,
+                      fontWeight: 700,
+                      borderRadius: 3,
+                      px: 2.5,
+                      '&:hover': {
+                        borderColor: theme.palette.primary.dark,
+                        background: 'rgba(58,134,255,0.08)'
+                      }
+                    }}
+                  >
+                    Login
+                  </Button>
+                </>
+
+              )
+              }
+              <Tooltip title={mode === 'dark' ? 'Light mode' : 'Dark mode'}>
+                <IconButton onClick={toggleTheme} color="inherit">
+                  {mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
+                </IconButton>
+              </Tooltip>
+            </Stack>
+
+            {/* Mobile Menu */}
+            <Menu
+              anchorEl={mobileMenuAnchor}
+              open={Boolean(mobileMenuAnchor)}
+              onClose={handleMenuClose}
+              PaperProps={{
+                sx: {
+                  ...glassNavStyle(theme),
+                  mt: 1.5,
+                  minWidth: 180,
+                  boxShadow: '0 8px 32px 0 #3a86ff22'
+                }
               }}
             >
-              Start Campaign
-            </Button>
-
-            {/* If user is logged in, show avatar and dashboard */}
-            {profile ? (
-              <>
-                <IconButton onClick={handleProfileMenuOpen} sx={{ p: 0 }}>
-                  <Avatar
-                    alt={profile?.firstName || profile?.email}
-                    src={avatarSrc}
-                    sx={{ width: 46, height: 46, bgcolor: 'rgba(255, 255, 255, 0)', color: 'white' }}
-                  >
-                    {profile?.firstName ? profile.firstName[0] : (profile?.email ? profile.email[0] : '')}
-                  </Avatar>
-                </IconButton>
-                <Menu
-                  anchorEl={anchorEl}
-                  open={Boolean(anchorEl)}
-                  onClose={handleMenuClose}
+              {navLinks.map((item) => (
+                <MenuItem
+                  key={item.label}
+                  onClick={() => {
+                    handleMenuClose();
+                    navigate(item.path);
+                  }}
+                  sx={{ fontWeight: 600, fontSize: '1.1rem' }}
                 >
-                  <MenuItem onClick={() => { handleMenuClose(); handleDashboard(); }}>
+                  {item.icon}
+                  <Box sx={{ ml: 1 }}>{item.label}</Box>
+                </MenuItem>
+              ))}
+              <Divider />
+              {profile ? (
+                [
+                  <MenuItem key="dashboard" onClick={() => { handleMenuClose(); handleDashboard(); }}>
                     Dashboard
-                  </MenuItem>
-                  <MenuItem onClick={handleLogout}>
+                  </MenuItem>,
+                  <MenuItem key="logout" onClick={handleLogout}>
                     Logout
                   </MenuItem>
-                </Menu>
-              </>
-            ) : (
-              <>
-                <Button
-                  variant="outlined"
-                  onClick={() => navigate('/register')}
-                  sx={{ 
-                    borderColor: '#1976d2',
-                    color: '#1976d2',
-                    '&:hover': { borderColor: '#1976d2', bgcolor: 'rgba(25, 118, 210, 0.04)' }
-                  }}
-                >
-                  Register
-                </Button>
-                <Button
-                  variant="outlined"
-                  onClick={() => navigate('/login')}
-                  sx={{ 
-                    borderColor: '#1976d2',
-                    color: '#1976d2',
-                    '&:hover': { borderColor: '#1976d2', bgcolor: 'rgba(25, 118, 210, 0.04)' }
-                  }}
-                >
-                  Login
-                </Button>
-              </>
-            )}
-          </Box>
-
-          {/* Mobile Menu */}
-          <Menu
-            anchorEl={mobileMenuAnchor}
-            open={Boolean(mobileMenuAnchor)}
-            onClose={handleMenuClose}
-          >
-            {menuItems.map((item) => (
-              <MenuItem 
-                key={item.label}
-                onClick={() => { 
-                  handleMenuClose(); 
-                  navigate(item.path); 
-                }}
-              >
-                {item.label}
-              </MenuItem>
-            ))}
-          </Menu>
-        </Toolbar>
-      </Container>
-    </AppBar>
+                ]
+              ) : (
+                [
+                  <MenuItem key="register" onClick={() => { handleMenuClose(); navigate('/register'); }}>
+                    Register
+                  </MenuItem>,
+                  <MenuItem key="login" onClick={() => { handleMenuClose(); navigate('/login'); }}>
+                    Login
+                  </MenuItem>
+                ]
+              )}
+            </Menu>
+          </Toolbar>
+        </Container>
+      </AppBar>
+    </Slide>
   );
 };
 
