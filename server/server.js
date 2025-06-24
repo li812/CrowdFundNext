@@ -4,6 +4,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const connectDB = require('./config/db');
+const authRoutes = require('./routes/authRoutes');
 
 // Connect to database
 connectDB();
@@ -28,6 +29,8 @@ app.get('/health', (req, res) => {
 app.get('/api/status', (req, res) => {
   res.json({ message: 'CrowdFundNext API is running!' });
 });
+
+app.use('/api/auth', authRoutes);
 
 const PORT = process.env.PORT || 4800;
 
