@@ -41,5 +41,4 @@ async function ensureAdminUser() {
 
 ensureAdminUser().then(() => {
   console.log('Firebase initialization complete.');
-  process.exit(0);
 });

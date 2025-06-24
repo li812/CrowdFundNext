@@ -8,6 +8,7 @@ import {
   Box,
   Menu,
   MenuItem,
+  Avatar,
   useMediaQuery,
   useTheme,
   Container
@@ -20,12 +21,39 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
+// Helper to decode JWT and get user info
+function getUserFromJWT() {
+  const token = localStorage.getItem('jwt');
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return {
+      userType: payload.userType,
+      email: payload.email,
+      name: payload.name,
+      picture: payload.picture // If you store a photoURL in custom claims
+    };
+  } catch {
+    return null;
+  }
+}
+
 const HomeTopNavBar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileMenuAnchor, setMobileMenuAnchor] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
+
+  const user = getUserFromJWT();
+
+  // Determine avatar source
+  let avatarSrc = undefined;
+  if (user?.userType === 'admin') {
+    avatarSrc = '/images/admin.png'; // This will resolve to public/images/admin.png
+  } else if (user?.picture) {
+    avatarSrc = user.picture;
+  }
 
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -40,6 +68,19 @@ const HomeTopNavBar = () => {
     setMobileMenuAnchor(null);
   };
 
+  const handleDashboard = () => {
+    if (user?.userType === 'admin') {
+      navigate('/admin');
+    } else if (user?.userType === 'user') {
+      navigate('/user');
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('jwt');
+    window.location.reload();
+  };
+
   const menuItems = [
     { label: 'Home', path: '/' },
     { label: 'Explore', path: '/explore' },
@@ -48,7 +89,7 @@ const HomeTopNavBar = () => {
   ];
 
   return (
-    <AppBar position="static" sx={{ bgcolor: 'white', color: 'black', boxShadow: 1 }}>
+    <AppBar position="fixed" sx={{ bgcolor: 'white', color: 'black', boxShadow: 1, zIndex: (theme) => theme.zIndex.drawer + 1 }}>
       <Container maxWidth="lg">
         <Toolbar>
           {/* Logo */}
@@ -117,50 +158,58 @@ const HomeTopNavBar = () => {
               Start Campaign
             </Button>
 
-            <Button
-              variant="outlined"
-              onClick={() => navigate('/register')}
-              sx={{ 
-                borderColor: '#1976d2',
-                color: '#1976d2',
-                '&:hover': { borderColor: '#1976d2', bgcolor: 'rgba(25, 118, 210, 0.04)' }
-              }}
-            >
-              Register
-            </Button>
-
-            <Button
-              variant="outlined"
-              onClick={() => navigate('/login')}
-              sx={{ 
-                borderColor: '#1976d2',
-                color: '#1976d2',
-                '&:hover': { borderColor: '#1976d2', bgcolor: 'rgba(25, 118, 210, 0.04)' }
-              }}
-            >
-              Login
-            </Button>
+            {/* If user is logged in, show avatar and dashboard */}
+            {user ? (
+              <>
+                <IconButton onClick={handleProfileMenuOpen} sx={{ p: 0 }}>
+                  <Avatar
+                    alt={user.name || user.email}
+                    src={avatarSrc}
+                    sx={{ width: 46, height: 46, bgcolor: '#ffffff', color: 'white' }}
+                  >
+                    {user.name ? user.name[0] : user.email[0]}
+                  </Avatar>
+                </IconButton>
+                <Menu
+                  anchorEl={anchorEl}
+                  open={Boolean(anchorEl)}
+                  onClose={handleMenuClose}
+                >
+                  <MenuItem onClick={() => { handleMenuClose(); handleDashboard(); }}>
+                    Dashboard
+                  </MenuItem>
+                  <MenuItem onClick={handleLogout}>
+                    Logout
+                  </MenuItem>
+                </Menu>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="outlined"
+                  onClick={() => navigate('/register')}
+                  sx={{ 
+                    borderColor: '#1976d2',
+                    color: '#1976d2',
+                    '&:hover': { borderColor: '#1976d2', bgcolor: 'rgba(25, 118, 210, 0.04)' }
+                  }}
+                >
+                  Register
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={() => navigate('/login')}
+                  sx={{ 
+                    borderColor: '#1976d2',
+                    color: '#1976d2',
+                    '&:hover': { borderColor: '#1976d2', bgcolor: 'rgba(25, 118, 210, 0.04)' }
+                  }}
+                >
+                  Login
+                </Button>
+              </>
+            )}
           </Box>
-
-          {/* Profile Menu */}
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-          >
-            <MenuItem onClick={() => { handleMenuClose(); navigate('/profile'); }}>
-              My Profile
-            </MenuItem>
-            <MenuItem onClick={() => { handleMenuClose(); navigate('/campaigns'); }}>
-              My Campaigns
-            </MenuItem>
-            <MenuItem onClick={() => { handleMenuClose(); navigate('/settings'); }}>
-              Settings
-            </MenuItem>
-            <MenuItem onClick={handleMenuClose}>
-              Logout
-            </MenuItem>
-          </Menu>
 
           {/* Mobile Menu */}
           <Menu

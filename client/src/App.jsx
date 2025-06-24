@@ -12,6 +12,8 @@ import ExplorePage from './pages/Home/ExplorePage';
 import AdminBase from './pages/Admin/AdminBase';
 import UserBase from './pages/Users/UserBase';
 import HomeBase from './pages/Home/HomeBase';
+import AdminHome from './pages/Admin/AdminHome';
+import AdminSettings from './pages/Admin/AdminSettings';
 
 const theme = createTheme({
   palette: {
@@ -56,29 +58,24 @@ function App() {
       <CssBaseline />
       <Router>
         <Routes>
-          {/* Admin route */}
-          {userType === 'admin' && (
-            <Route path="*" element={<AdminBase />} />
-          )}
-
-          {/* User route */}
-          {userType === 'user' && (
-            <Route path="*" element={<UserBase />} />
-          )}
-
-          {/* Public routes */}
-          {(!userType || userType === 'guest') && (
-            <Route element={<HomeBase />}>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/explore" element={<ExplorePage />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/contact" element={<ContactPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              {/* Redirect unknown routes to home */}
-              <Route path="*" element={<Navigate to="/" />} />
+          <Route element={<HomeBase />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/explore" element={<ExplorePage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            {/* NESTED ADMIN ROUTES */}
+            <Route path="/admin/*" element={<AdminBase />}>
+              <Route index element={<AdminHome />} />
+              <Route path="home" element={<AdminHome />} />
+              <Route path="settings" element={<AdminSettings />} />
+              {/* Add more admin pages here */}
             </Route>
-          )}
+            <Route path="/user/*" element={<UserBase />} />
+            {/* Redirect unknown routes to home */}
+            <Route path="*" element={<Navigate to="/" />} />
+          </Route>
         </Routes>
       </Router>
     </ThemeProvider>

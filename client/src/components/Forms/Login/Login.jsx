@@ -76,9 +76,16 @@ const Login = () => {
       // Firebase email/password login
       await signInWithEmailAndPassword(auth, formData.email, formData.password);
       const token = await auth.currentUser.getIdToken();
-      localStorage.setItem('jwt', token); // Store token for API use
-      // Optionally, fetch user type from backend and redirect accordingly
-      navigate('/'); // or your dashboard route
+      localStorage.setItem('jwt', token);
+
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      if (payload.userType === 'admin') {
+        navigate('/admin');
+      } else if (payload.userType === 'user') {
+        navigate('/user');
+      } else {
+        navigate('/');
+      }
       
     } catch (error) {
       setErrors({ general: error.message || 'Login failed. Please check your credentials.' });

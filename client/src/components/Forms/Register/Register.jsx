@@ -34,6 +34,8 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { Country, State, City } from 'country-state-city';
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from '../../../utils/firebase';
 
 const Register = () => {
   const [activeStep, setActiveStep] = useState(0);
@@ -192,23 +194,44 @@ const Register = () => {
 
   const handleSubmit = async () => {
     if (!validateStep(activeStep)) return;
-    
     setIsLoading(true);
-    
+
     try {
-      // TODO: Implement Firebase registration
-      console.log('Registration data:', formData);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // TODO: Handle successful registration
+      // 1. Register with Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+      const user = userCredential.user;
+      const idToken = await user.getIdToken();
+
+      // 2. Prepare FormData for backend (including file)
+      const data = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        if (key === 'profilePicture' && value) {
+          data.append('profilePicture', value);
+        } else if (value) {
+          data.append(key, value);
+        }
+      });
+
+      // 3. Send to backend
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/register`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: data,
+      });
+
+      const result = await response.json();
+      if (!result.success) throw new Error(result.error || 'Registration failed');
+
       alert('Registration successful!');
       navigate('/login');
-      
     } catch (error) {
-      console.error('Registration error:', error);
-      setErrors({ general: 'Registration failed. Please try again.' });
+      setErrors({ general: error.message || 'Registration failed. Please try again.' });
     } finally {
       setIsLoading(false);
     }
