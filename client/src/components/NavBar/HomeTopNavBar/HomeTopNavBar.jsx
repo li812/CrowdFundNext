@@ -20,6 +20,7 @@ import {
   Add
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../../../context/UserContext';
 
 // Helper to decode JWT and get user info
 function getUserFromJWT() {
@@ -45,14 +46,14 @@ const HomeTopNavBar = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
 
-  const user = getUserFromJWT();
+  const profile = useUser();
 
   // Determine avatar source
   let avatarSrc = undefined;
-  if (user?.userType === 'admin') {
+  if (profile?.userType === 'admin') {
     avatarSrc = '/images/admin.png'; // This will resolve to public/images/admin.png
-  } else if (user?.picture) {
-    avatarSrc = user.picture;
+  } else if (profile?.profilePicture) {
+    avatarSrc = `${import.meta.env.VITE_API_URL}${profile.profilePicture}`;
   }
 
   const handleProfileMenuOpen = (event) => {
@@ -69,9 +70,9 @@ const HomeTopNavBar = () => {
   };
 
   const handleDashboard = () => {
-    if (user?.userType === 'admin') {
+    if (profile?.userType === 'admin') {
       navigate('/admin');
-    } else if (user?.userType === 'user') {
+    } else if (profile?.userType === 'user') {
       navigate('/user');
     }
   };
@@ -159,15 +160,15 @@ const HomeTopNavBar = () => {
             </Button>
 
             {/* If user is logged in, show avatar and dashboard */}
-            {user ? (
+            {profile ? (
               <>
                 <IconButton onClick={handleProfileMenuOpen} sx={{ p: 0 }}>
                   <Avatar
-                    alt={user.name || user.email}
+                    alt={profile?.firstName || profile?.email}
                     src={avatarSrc}
-                    sx={{ width: 46, height: 46, bgcolor: '#ffffff', color: 'white' }}
+                    sx={{ width: 46, height: 46, bgcolor: 'rgba(255, 255, 255, 0)', color: 'white' }}
                   >
-                    {user.name ? user.name[0] : user.email[0]}
+                    {profile?.firstName ? profile.firstName[0] : (profile?.email ? profile.email[0] : '')}
                   </Avatar>
                 </IconButton>
                 <Menu

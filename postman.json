@@ -1,0 +1,88 @@
+{
+  "info": {
+    "name": "CrowdFundNext User API",
+    "_postman_id": "cfdn-user-api-collection",
+    "description": "API tests for CrowdFundNext user registration, login, and profile.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3300/health",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3300",
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "Register User",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer YOUR_ID_TOKEN", "type": "text" }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "firstName", "value": "Ali", "type": "text" },
+            { "key": "lastName", "value": "Ahammad", "type": "text" },
+            { "key": "gender", "value": "male", "type": "text" },
+            { "key": "dateOfBirth", "value": "2000-01-01", "type": "text" },
+            { "key": "email", "value": "ali@example.com", "type": "text" },
+            { "key": "phoneNumber", "value": "+1234567890", "type": "text" },
+            { "key": "country", "value": "IN", "type": "text" },
+            { "key": "state", "value": "KA", "type": "text" },
+            { "key": "city", "value": "Bangalore", "type": "text" },
+            { "key": "pincode", "value": "560001", "type": "text" },
+            { "key": "profilePicture", "type": "file", "src": "/Users/li/Documents/ali.png" }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:3300/api/users/register",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3300",
+          "path": ["api", "users", "register"]
+        }
+      }
+    },
+    {
+      "name": "Get Current User Profile (/me)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer YOUR_ID_TOKEN", "type": "text" }
+        ],
+        "url": {
+          "raw": "http://localhost:3300/api/users/me",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3300",
+          "path": ["api", "users", "me"]
+        }
+      }
+    },
+    {
+      "name": "Verify Token",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer YOUR_ID_TOKEN", "type": "text" }
+        ],
+        "url": {
+          "raw": "http://localhost:3300/api/auth/verify",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3300",
+          "path": ["api", "auth", "verify"]
+        }
+      }
+    }
+  ]
+}

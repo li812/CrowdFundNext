@@ -49,4 +49,18 @@ async function registerUser(req, res) {
   }
 }
 
-module.exports = { registerUser };
+async function getCurrentUser(req, res) {
+  try {
+    const user = await User.findById(req.user.uid);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ success: true, user });
+  } catch (err) {
+    console.error('Fetch user error:', err);
+    res.status(500).json({ error: 'Failed to fetch user profile' });
+  }
+}
+
+module.exports = {
+  registerUser,
+  getCurrentUser,
+};
