@@ -1,12 +1,15 @@
-import React from 'react'
+import React from 'react';
+import { Container, Box } from '@mui/material';
+import Register from '../../components/Forms/Register/Register';
 
-function RegisterPage() {
+const RegisterPage = () => {
   return (
-    <div>
-      <h1>Create an Account</h1>
-      <p>Please fill in the details to register.</p>
-    </div>
-  )
-}
+    <Box>
+      <Container maxWidth="md" sx={{ py: 4 }}>
+        <Register />
+      </Container>
+    </Box>
+  );
+};
 
-export default RegisterPage
+export default RegisterPage;
