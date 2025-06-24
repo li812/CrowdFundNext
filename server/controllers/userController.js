@@ -1,5 +1,7 @@
 const User = require('../models/Users');
-const { setUserTypeClaim } = require('../services/firebaseService');
+const admin = require('../config/firebase');
+const fs = require('fs');
+const path = require('path');
 
 async function registerUser(req, res) {
   try {
@@ -60,7 +62,39 @@ async function getCurrentUser(req, res) {
   }
 }
 
+async function deleteCurrentUser(req, res) {
+  try {
+    const { uid } = req.user;
+
+    // 1. Find user in MongoDB
+    const user = await User.findById(uid);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // 2. Delete profile picture file if exists
+    if (user.profilePicture) {
+      const picPath = path.join(__dirname, '..', user.profilePicture);
+      fs.unlink(picPath, (err) => {
+        if (err && err.code !== 'ENOENT') {
+          console.error('Failed to delete profile picture:', err.message);
+        }
+      });
+    }
+
+    // 3. Delete user from MongoDB
+    await User.findByIdAndDelete(uid);
+
+    // 4. Delete user from Firebase Auth
+    await admin.auth().deleteUser(uid);
+
+    res.json({ success: true, message: 'Account deleted successfully.' });
+  } catch (err) {
+    console.error('Delete user error:', err);
+    res.status(500).json({ error: 'Failed to delete account.' });
+  }
+}
+
 module.exports = {
   registerUser,
   getCurrentUser,
+  deleteCurrentUser,
 };
