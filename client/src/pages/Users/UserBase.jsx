@@ -14,6 +14,7 @@ function UserBase() {
 
   const handleLogout = () => {
     localStorage.removeItem('jwt');
+    localStorage.removeItem('userType');
     window.location.href = '/';
   };
 

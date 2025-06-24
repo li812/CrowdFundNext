@@ -2,6 +2,7 @@ const User = require('../models/Users');
 const admin = require('../config/firebase');
 const fs = require('fs');
 const path = require('path');
+const { setUserTypeClaim } = require('../services/firebaseService');
 
 async function registerUser(req, res) {
   try {

@@ -27,12 +27,11 @@ const theme = createTheme({
   },
 });
 
-// Dummy JWT decode function (replace with real one)
+// Helper to decode JWT and get userType
 function getUserTypeFromJWT() {
   const token = localStorage.getItem('jwt');
   if (!token) return null;
   try {
-    // Example: decode base64 payload (replace with real JWT decode)
     const payload = JSON.parse(atob(token.split('.')[1]));
     return payload.userType; // 'admin', 'user', or undefined
   } catch {
@@ -40,35 +39,30 @@ function getUserTypeFromJWT() {
   }
 }
 
-// Layout for public homepage with nav bar and nested content
-function HomeLayout() {
-  return (
-    <>
-      <HomeTopNavBar />
-      <div style={{ minHeight: '80vh', padding: '32px 0' }}>
-        <Outlet />
-      </div>
-    </>
-  );
-}
-
+// Role-based redirect logic
 function RoleRedirect() {
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
     const token = localStorage.getItem('jwt');
-    if (!token) return; // No token, stay on public pages
+    if (!token) return;
 
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      if (payload.userType === 'admin' && !location.pathname.startsWith('/admin')) {
-        navigate('/admin', { replace: true });
-      } else if (payload.userType === 'user' && !location.pathname.startsWith('/user')) {
-        navigate('/user', { replace: true });
+    // Prefer userType from localStorage, fallback to JWT
+    let userType = localStorage.getItem('userType');
+    if (!userType) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        userType = payload.userType;
+      } catch {
+        userType = null;
       }
-    } catch {
-      // Invalid token, stay on public pages
+    }
+
+    if (userType === 'admin' && !location.pathname.startsWith('/admin')) {
+      navigate('/admin', { replace: true });
+    } else if (userType === 'user' && !location.pathname.startsWith('/user')) {
+      navigate('/user', { replace: true });
     }
   }, [navigate, location]);
 
@@ -76,8 +70,6 @@ function RoleRedirect() {
 }
 
 function App() {
-  const userType = getUserTypeFromJWT();
-
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />

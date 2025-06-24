@@ -228,7 +228,7 @@ const Register = () => {
       const result = await response.json();
       if (!result.success) throw new Error(result.error || 'Registration failed');
 
-      alert('Registration successful!');
+      alert('Registration successful! Please log in.');
       navigate('/login');
     } catch (error) {
       setErrors({ general: error.message || 'Registration failed. Please try again.' });
@@ -715,3 +715,4 @@ const Register = () => {
 };
 
 export default Register;
+
