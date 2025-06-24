@@ -120,7 +120,6 @@ const LoginPage = () => {
           width: 320,
           height: 320,
           zIndex: 0,
-          background: 'radial-gradient(circle at 60% 40%, #3a86ff33 0%, #36f1cd66 100%)',
           filter: 'blur(80px)',
           borderRadius: '50%',
           opacity: 0.7,
@@ -137,7 +136,6 @@ const LoginPage = () => {
           width: 220,
           height: 220,
           zIndex: 0,
-          background: 'radial-gradient(circle at 40% 60%, #1a223f33 0%, #3a86ff55 100%)',
           filter: 'blur(60px)',
           borderRadius: '50%',
           opacity: 0.5,
@@ -151,10 +149,6 @@ const LoginPage = () => {
       sx={{
         minHeight: '100vh',
         width: '100%',
-        bgcolor: 'transparent',
-        background: {
-          backgroundColor: theme.palette.mode === 'dark' ? '#121212' : '#f5f5f5',
-        },
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

@@ -8,6 +8,7 @@ const HomeBase = () => (
     <HomeTopNavBar />
     <Container 
     maxWidth="xxlg" 
+    sx={{ py: 1, mt: { xs: 1, sm: 11 } }}
     style={{
       background: 'rgba(255, 255, 255, 0)',
       borderRadius: '24px',
