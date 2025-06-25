@@ -127,7 +127,8 @@ function EditCampaignModal({ open, campaign, onClose, onSubmit, loading }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validate()) return;
-    onSubmit(form);
+    const clearPhotos = form.photos.length === 0;
+    onSubmit(form, removeSupportDoc, clearPhotos);
   };
 
   return (

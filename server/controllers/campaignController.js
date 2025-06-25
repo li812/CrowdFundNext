@@ -109,19 +109,24 @@ async function updateCampaign(req, res) {
     if (amountNeeded) campaign.amountNeeded = amountNeeded;
     if (links) campaign.links = Array.isArray(links) ? links : [links];
     // Handle files (photos/supportDoc)
-    let newPhotos = [];
-    if (req.body.existingPhotos) {
-      if (Array.isArray(req.body.existingPhotos)) {
-        newPhotos = req.body.existingPhotos;
-      } else {
-        newPhotos = [req.body.existingPhotos];
+    // Clear all photos if requested
+    if (req.body.clearPhotos === 'true') {
+      campaign.photos = [];
+    } else {
+      let newPhotos = [];
+      if (req.body.existingPhotos) {
+        if (Array.isArray(req.body.existingPhotos)) {
+          newPhotos = req.body.existingPhotos;
+        } else {
+          newPhotos = [req.body.existingPhotos];
+        }
       }
-    }
-    if (req.files && req.files['photos']) {
-      newPhotos = newPhotos.concat(req.files['photos'].map(f => `/uploads/campaign_photos/${f.filename}`));
-    }
-    if (newPhotos.length > 0) {
-      campaign.photos = newPhotos;
+      if (req.files && req.files['photos']) {
+        newPhotos = newPhotos.concat(req.files['photos'].map(f => `/uploads/campaign_photos/${f.filename}`));
+      }
+      if (newPhotos.length > 0) {
+        campaign.photos = newPhotos;
+      }
     }
     // Support Document: remove if requested
     if (req.body.removeSupportDoc === 'true') {
