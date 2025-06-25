@@ -59,7 +59,7 @@ function UserBase() {
       <UserTopNavBar />
       <Container
         maxWidth="xxlg"
-        sx={{ py: 1, mt: { xs: 8, sm: 1 } }}
+        sx={{ py: 1, mt: { xs: 8, sm: 10 } }}
       >
         <Outlet />
       </Container>

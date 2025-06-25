@@ -47,7 +47,7 @@ const navLinks = [
 ];
 
 const campaignLinks = [
-  { label: 'My Campaigns', path: '/user/post-campaign', icon: <Campaign /> },
+  { label: 'My Campaigns', path: '/user/campaigns', icon: <Campaign /> },
   { label: 'Start a Campaign', path: '/user/post-campaign', icon: <AddCircleOutline /> }
 ];
 

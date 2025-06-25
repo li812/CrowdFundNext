@@ -78,6 +78,66 @@ async function donateToCampaign(req, res) {
   res.json({ success: true, campaign });
 }
 
+// Delete campaign (user)
+async function deleteCampaign(req, res) {
+  try {
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) return res.status(404).json({ error: 'Not found' });
+    if (campaign.createdBy !== req.user.uid) return res.status(403).json({ error: 'Forbidden' });
+    if (campaign.status === 'approved') return res.status(400).json({ error: 'Cannot delete approved campaign' });
+    // Optionally: remove files (photos/supportDoc)
+    // ...
+    await campaign.deleteOne();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+}
+
+// Update campaign (user)
+async function updateCampaign(req, res) {
+  try {
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) return res.status(404).json({ error: 'Not found' });
+    if (campaign.createdBy !== req.user.uid) return res.status(403).json({ error: 'Forbidden' });
+    if (campaign.status === 'approved') return res.status(400).json({ error: 'Cannot edit approved campaign' });
+    // Update fields
+    const { type, title, description, amountNeeded, links } = req.body;
+    if (type) campaign.type = type;
+    if (title) campaign.title = title;
+    if (description) campaign.description = description;
+    if (amountNeeded) campaign.amountNeeded = amountNeeded;
+    if (links) campaign.links = Array.isArray(links) ? links : [links];
+    // Handle files (photos/supportDoc)
+    let newPhotos = [];
+    if (req.body.existingPhotos) {
+      if (Array.isArray(req.body.existingPhotos)) {
+        newPhotos = req.body.existingPhotos;
+      } else {
+        newPhotos = [req.body.existingPhotos];
+      }
+    }
+    if (req.files && req.files['photos']) {
+      newPhotos = newPhotos.concat(req.files['photos'].map(f => `/uploads/campaign_photos/${f.filename}`));
+    }
+    if (newPhotos.length > 0) {
+      campaign.photos = newPhotos;
+    }
+    // Support Document: remove if requested
+    if (req.body.removeSupportDoc === 'true') {
+      campaign.supportDocument = '';
+      // Optionally: delete the file from disk here
+    } else if (req.files && req.files['supportDoc'] && req.files['supportDoc'][0]) {
+      campaign.supportDocument = `/uploads/campaign_docs/${req.files['supportDoc'][0].filename}`;
+    }
+    campaign.updatedAt = Date.now();
+    await campaign.save();
+    res.json({ success: true, campaign });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+}
+
 module.exports = {
   createCampaign,
   getMyCampaigns,
@@ -85,4 +145,6 @@ module.exports = {
   approveCampaign,
   rejectCampaign,
   donateToCampaign,
+  deleteCampaign,
+  updateCampaign,
 };

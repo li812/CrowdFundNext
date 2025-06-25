@@ -3,7 +3,7 @@ const { uploadCampaign } = require('../services/campaignFileService');
 const verifyFirebaseToken = require('../middleware/verifyFirebaseToken');
 const {
   createCampaign, getMyCampaigns, getPendingCampaigns,
-  approveCampaign, rejectCampaign, donateToCampaign
+  approveCampaign, rejectCampaign, donateToCampaign, deleteCampaign, updateCampaign
 } = require('../controllers/campaignController');
 
 const router = express.Router();
@@ -31,5 +31,19 @@ router.patch('/:id/reject', verifyFirebaseToken, rejectCampaign);
 
 // User: donate
 router.post('/:id/donate', verifyFirebaseToken, donateToCampaign);
+
+// User: update campaign
+router.patch(
+  '/:id',
+  verifyFirebaseToken,
+  uploadCampaign.fields([
+    { name: 'photos', maxCount: 5 },
+    { name: 'supportDoc', maxCount: 1 }
+  ]),
+  updateCampaign
+);
+
+// User: delete campaign
+router.delete('/:id', verifyFirebaseToken, deleteCampaign);
 
 module.exports = router;

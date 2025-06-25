@@ -20,7 +20,8 @@ import CompleteRegisterPage from './pages/Home/CompleteRegisterPage';
 import { useThemeMode } from './context/ThemeContext';
 import ChatBotFloatingButton from './components/ChatBot/ChatBotFloatingButton/ChatBotFloatingButton';
 import ChatBotFloatingUI from './components/ChatBot/ChatBotFloatingUI/ChatBotFloatingUI';
-import UserPostCampaign from './pages/Users/UserPostCampaign'; // Import the UserPostCampaign component
+import UserPostCampaign from './pages/Users/UserPostCampaign';
+import UserCampaigns from './pages/Users/UserCampaigns';
 
 const theme = createTheme({
   palette: {
@@ -103,7 +104,8 @@ function App() {
           <Route path="/user/*" element={<UserBase />}>
             <Route index element={<UserHome />} />
             <Route path="settings" element={<UserSettings />} />
-            <Route path="post-campaign" element={<UserPostCampaign />} /> {/* <-- Add this line */}
+            <Route path="post-campaign" element={<UserPostCampaign />} />
+            <Route path="campaigns" element={<UserCampaigns />} />
           </Route>
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" />} />
