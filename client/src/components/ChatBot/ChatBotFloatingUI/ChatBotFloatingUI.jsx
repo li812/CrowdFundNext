@@ -3,6 +3,8 @@ import { Box, Paper, IconButton, TextField, CircularProgress, Fade, Typography }
 import CloseIcon from '@mui/icons-material/Close';
 import SendIcon from '@mui/icons-material/Send';
 import { useChatBot } from '../ChatBotProvider';
+import ReactMarkdown from 'react-markdown';
+
 
 function ChatBotFloatingUI() {
   const { open, setOpen, messages, sendMessage, loading } = useChatBot();
@@ -79,11 +81,12 @@ function ChatBotFloatingUI() {
                   wordBreak: 'break-word',
                   whiteSpace: 'pre-line',
                 }}
-                dangerouslySetInnerHTML={msg.sender === 'ai'
-                  ? { __html: msg.text.replace(/\n/g, '<br/>') }
-                  : undefined}
               >
-                {msg.sender === 'user' ? msg.text : null}
+                {msg.sender === 'ai' ? (
+                  <ReactMarkdown>{msg.text}</ReactMarkdown>
+                ) : (
+                  msg.text
+                )}
               </Box>
             </Box>
           ))}
