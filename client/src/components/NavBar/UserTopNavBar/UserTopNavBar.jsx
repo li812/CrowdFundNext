@@ -11,7 +11,8 @@ import {
   Container,
   InputBase,
   Tooltip,
-  Divider
+  Divider,
+  Button
 } from '@mui/material';
 import {
   Home as HomeIcon,
@@ -42,7 +43,10 @@ const glassNavStyle = (theme) => ({
 
 const navLinks = [
   { label: 'Home', path: '/user', icon: <HomeIcon /> },
-  { label: 'Explore', path: '/explore', icon: <ExploreIcon /> },
+  { label: 'Explore', path: '/explore', icon: <ExploreIcon /> }
+];
+
+const campaignLinks = [
   { label: 'My Campaigns', path: '/user/post-campaign', icon: <Campaign /> },
   { label: 'Start a Campaign', path: '/user/post-campaign', icon: <AddCircleOutline /> }
 ];
@@ -79,7 +83,7 @@ const UserTopNavBar = () => {
       }}
     >
       <Container maxWidth="xxlg" disableGutters>
-        <Toolbar sx={{ minHeight: 72, px: { xs: 1, sm: 2 }, display: 'flex', justifyContent: 'space-between' }}>
+        <Toolbar sx={{ minHeight: 92, px: { xs: 1, sm: 2 }, display: 'flex', justifyContent: 'space-between' }}>
           {/* Logo */}
           <Typography
             variant="h4"
@@ -100,7 +104,7 @@ const UserTopNavBar = () => {
             CrowdFundNext
           </Typography>
 
-          {/* Navigation Links */}
+          {/* Navigation Links (left) */}
           <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 2, flexGrow: 1 }}>
             {navLinks.map((item) => {
               const isActive = location.pathname === item.path || (item.path !== '/user' && location.pathname.startsWith(item.path));
@@ -152,6 +156,39 @@ const UserTopNavBar = () => {
               placeholder="Search campaigns, people..."
               sx={{ flex: 1, color: theme.palette.text.primary, fontWeight: 500 }}
             />
+          </Box>
+
+          {/* Campaign Buttons (right of search, left of name/avatar) */}
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 2, alignItems: 'center', mr: 2 }}>
+            {campaignLinks.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <Button
+                  key={item.label}
+                  onClick={() => navigate(item.path)}
+                  startIcon={item.icon}
+                  variant={isActive ? 'contained' : 'outlined'}
+                  color={isActive ? 'primary' : 'inherit'}
+                  sx={{
+                    fontWeight: 700,
+                    borderRadius: 3,
+                    px: 2.5,
+                    py: 1.2,
+                    fontSize: '1rem',
+                    boxShadow: isActive ? '0 2px 12px 0 #3a86ff22' : 'none',
+                    background: isActive ? theme.palette.primary.main : 'transparent',
+                    color: isActive ? theme.palette.getContrastText(theme.palette.primary.main) : theme.palette.text.primary,
+                    borderColor: theme.palette.primary.main,
+                    '&:hover': {
+                      background: isActive ? theme.palette.primary.dark : 'rgba(58,134,255,0.08)',
+                      color: theme.palette.getContrastText(theme.palette.primary.main)
+                    },
+                  }}
+                >
+                  {item.label}
+                </Button>
+              );
+            })}
           </Box>
 
           {/* Avatar/Profile */}
