@@ -9,7 +9,7 @@ const CampaignSchema = new mongoose.Schema({
   photos: [{ type: String }],
   supportDocument: { type: String },
   links: [{ type: String }],
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  createdBy: { type: String, ref: 'User', required: true },
   status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
   adminComment: { type: String },
   createdAt: { type: Date, default: Date.now },
