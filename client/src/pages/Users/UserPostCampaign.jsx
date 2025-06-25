@@ -354,7 +354,7 @@ function UserPostCampaign() {
               />
             </Grid>
             {/* Photos */}
-            <Grid item xs={12}minWidth='200px'>
+            <Grid item xs={12} minWidth='200px'>
               <Typography variant="subtitle1" sx={{ mb: 1 }}>Photos (optional, up to 5)</Typography>
               <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 1, flexWrap: 'wrap' }}>
                 {photoPreviews.map((src, idx) => (
@@ -370,33 +370,38 @@ function UserPostCampaign() {
                   </Box>
                 ))}
                 {form.photos.length < MAX_PHOTOS && (
-                  <label>
+                  <>
                     <input
+                      id="photo-upload"
                       type="file"
                       accept="image/*"
                       multiple
                       hidden
                       onChange={handlePhotoChange}
                     />
-                    <IconButton color="primary" component="span" sx={{ border: '1.5px dashed #3a86ff', bgcolor: 'rgba(58,134,255,0.07)' }}>
-                      <PhotoCamera />
-                    </IconButton>
-                  </label>
+                    <label htmlFor="photo-upload">
+                      <IconButton color="primary" component="span" sx={{ border: '1.5px dashed #3a86ff', bgcolor: 'rgba(58,134,255,0.07)' }}>
+                        <PhotoCamera />
+                      </IconButton>
+                    </label>
+                  </>
                 )}
               </Stack>
               {errors.photos && <Typography color="error" variant="caption">{errors.photos}</Typography>}
             </Grid>
+
             {/* Support Document */}
             <Grid item xs={12} minWidth='200px'>
               <Typography variant="subtitle1" sx={{ mb: 1 }}>Support Document (PDF, optional)</Typography>
               <Stack direction="row" spacing={2} alignItems="center">
-                <label>
-                  <input
-                    type="file"
-                    accept="application/pdf"
-                    hidden
-                    onChange={handleSupportDoc}
-                  />
+                <input
+                  id="support-doc-upload"
+                  type="file"
+                  accept="application/pdf"
+                  hidden
+                  onChange={handleSupportDoc}
+                />
+                <label htmlFor="support-doc-upload">
                   <Button variant="outlined" startIcon={<UploadFile />}>
                     {supportDocName ? 'Change PDF' : 'Upload PDF'}
                   </Button>
