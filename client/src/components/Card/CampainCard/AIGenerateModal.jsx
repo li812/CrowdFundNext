@@ -21,7 +21,9 @@ const generateWithAI = async (prompt) => {
   return res.json();
 };
 
+const TITLE_MIN = 10;
 const TITLE_MAX = 25;
+const DESC_MIN = 100;
 const DESC_MAX = 250;
 
 function AIGenerateModal({ open, onClose, onSelect }) {
@@ -61,8 +63,8 @@ function AIGenerateModal({ open, onClose, onSelect }) {
     onClose();
   };
 
-  const isTitleValid = (title) => title.length <= TITLE_MAX;
-  const isDescValid = (desc) => desc.length <= DESC_MAX;
+  const isTitleValid = (title) => title.length >= TITLE_MIN && title.length <= TITLE_MAX;
+  const isDescValid = (desc) => desc.length >= DESC_MIN && desc.length <= DESC_MAX;
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
@@ -96,7 +98,7 @@ function AIGenerateModal({ open, onClose, onSelect }) {
                   {results.titles.map((title, idx) => (
                     <Stack key={idx} direction="row" alignItems="center" spacing={1}>
                       <Typography variant="body2" sx={{ flex: 1, color: isTitleValid(title) ? 'inherit' : 'error.main', fontWeight: isTitleValid(title) ? 400 : 700 }}>
-                        {title} {isTitleValid(title) ? '' : `(Too long: ${title.length}/${TITLE_MAX})`}
+                        {title} {isTitleValid(title) ? '' : `(Length: ${title.length}/${TITLE_MIN}-${TITLE_MAX})`}
                       </Typography>
                       <Button size="small" variant="outlined" onClick={() => handleUse('title', title)} disabled={!isTitleValid(title)}>
                         Use this
@@ -111,7 +113,7 @@ function AIGenerateModal({ open, onClose, onSelect }) {
                   {results.descriptions.map((desc, idx) => (
                     <Stack key={idx} direction="row" alignItems="center" spacing={1}>
                       <Typography variant="body2" sx={{ flex: 1, color: isDescValid(desc) ? 'inherit' : 'error.main', fontWeight: isDescValid(desc) ? 400 : 700 }}>
-                        {desc} {isDescValid(desc) ? '' : `(Too long: ${desc.length}/${DESC_MAX})`}
+                        {desc} {isDescValid(desc) ? '' : `(Length: ${desc.length}/${DESC_MIN}-${DESC_MAX})`}
                       </Typography>
                       <Button size="small" variant="outlined" onClick={() => handleUse('description', desc)} disabled={!isDescValid(desc)}>
                         Use this
