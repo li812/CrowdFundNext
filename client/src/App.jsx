@@ -22,6 +22,8 @@ import ChatBotFloatingButton from './components/ChatBot/ChatBotFloatingButton/Ch
 import ChatBotFloatingUI from './components/ChatBot/ChatBotFloatingUI/ChatBotFloatingUI';
 import UserPostCampaign from './pages/Users/UserPostCampaign';
 import UserCampaigns from './pages/Users/UserCampaigns';
+import AdminDashboard from './pages/Admin/AdminDashboard';
+import AdminManageUsers from './pages/Admin/AdminManageUsers';
 
 const theme = createTheme({
   palette: {
@@ -96,9 +98,10 @@ function App() {
           </Route>
           {/* Admin routes */}
           <Route path="/admin/*" element={<AdminBase />}>
-            <Route index element={<AdminHome />} />
+            <Route index element={<AdminDashboard />} />
             <Route path="home" element={<AdminHome />} />
             <Route path="settings" element={<AdminSettings />} />
+            <Route path="manage-users" element={<AdminManageUsers />} />
           </Route>
           {/* User routes */}
           <Route path="/user/*" element={<UserBase />}>

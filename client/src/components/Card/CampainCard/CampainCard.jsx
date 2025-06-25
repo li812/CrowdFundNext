@@ -43,11 +43,11 @@ function CampaignCard({
 
   return (
     <Card sx={{
-      maxWidth: 500,
-      minWidth: 500,
+      maxWidth: 350,
+      minWidth: 350,
       width: '100%',
-      maxHeight: 650,
-      minHeight: 650,
+      maxHeight: 680,
+      minHeight: 680,
       display: 'flex',
       flexDirection: 'column',
       m: 2,
