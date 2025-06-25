@@ -402,7 +402,11 @@ function UserPostCampaign() {
                   onChange={handleSupportDoc}
                 />
                 <label htmlFor="support-doc-upload">
-                  <Button variant="outlined" startIcon={<UploadFile />}>
+                  <Button
+                    variant="outlined"
+                    startIcon={<UploadFile />}
+                    component="span" // <-- This is the key!
+                  >
                     {supportDocName ? 'Change PDF' : 'Upload PDF'}
                   </Button>
                 </label>
