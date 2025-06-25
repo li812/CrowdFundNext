@@ -5,6 +5,7 @@ import {
 import { PhotoCamera, UploadFile, Link as LinkIcon, Delete } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { motion } from 'framer-motion';
+import AIGenerateModal from '../../components/Card/CampainCard/AIGenerateModal';
 
 const CAMPAIGN_TYPES = [
   'Tech', 'Education', 'Health', 'Art', 'Social Good', 'Environment', 'Startups', 'Student Life', 'Others'
@@ -96,6 +97,7 @@ function UserPostCampaign() {
   const [photoPreviews, setPhotoPreviews] = useState([]);
   const [supportDocName, setSupportDocName] = useState('');
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [aiModalOpen, setAIModalOpen] = useState(false);
 
   // Validation
   const validate = () => {
@@ -226,6 +228,11 @@ function UserPostCampaign() {
     }
   };
 
+  // Handler for AI modal selection
+  const handleAISelect = (field, value) => {
+    setForm(f => ({ ...f, [field]: value }));
+  };
+
   return (
     <Box
       sx={{
@@ -260,21 +267,32 @@ function UserPostCampaign() {
           transition={{ duration: 1.1, ease: 'easeOut' }}
           onSubmit={handleSubmit}
         >
-          <Typography
-            variant="h4"
-            fontWeight={900}
-            sx={{
-              color: theme.palette.primary.main,
-              mb: 1,
-              letterSpacing: '-1.2px',
-              textShadow: '0 2px 12px #3a86ff22'
-            }}
-          >
-            Start a New Campaign
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', mb: 2 }}>
+            <Typography
+              variant="h4"
+              fontWeight={900}
+              sx={{
+                color: theme.palette.primary.main,
+                letterSpacing: '-1.2px',
+                textShadow: '0 2px 12px #3a86ff22'
+              }}
+            >
+              Start a New Campaign
+            </Typography>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={() => setAIModalOpen(true)}
+              sx={{ fontWeight: 600, ml: 2, whiteSpace: 'nowrap' }}
+            >
+              Generate with AI
+            </Button>
+          </Box>
+          
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3, fontWeight: 500 }}>
             Fill in the details below. Your campaign will be reviewed by an admin before going live.
           </Typography>
+          
           {submitSuccess && (
             <Alert severity="success" sx={{ mb: 2 }}>
               Campaign submitted! Awaiting admin approval.
@@ -287,7 +305,7 @@ function UserPostCampaign() {
           )}
           <Grid container spacing={2}>
             {/* Type */}
-            <Grid item xs={12} minWidth='180px'>
+            <Grid item xs={12} minWidth='180px' sx={{ mb: 2 }}>
               <TextField
                 select
                 label="Type of Campaign"
@@ -295,7 +313,6 @@ function UserPostCampaign() {
                 value={form.type}
                 onChange={handleChange}
                 fullWidth
-                
                 required
                 error={!!errors.type}
                 helperText={errors.type}
@@ -304,6 +321,11 @@ function UserPostCampaign() {
                   <MenuItem minWidth='120px' key={type} value={type}>{type}</MenuItem>
                 ))}
               </TextField>
+              
+            </Grid>
+
+            <Grid item xs={12}>
+ 
             </Grid>
             {/* Title */}
             <Grid item xs={12} minWidth='500px'>
@@ -335,6 +357,8 @@ function UserPostCampaign() {
                 helperText={errors.description || `${form.description.length}/${MAX_DESC}`}
               />
             </Grid>
+            {/* AI Generate Button */}
+
             {/* Amount */}
             <Grid item xs={12} minWidth='500px'>
               <TextField
@@ -473,6 +497,12 @@ function UserPostCampaign() {
               </Button>
             </Grid>
           </Grid>
+          {/* AI Modal */}
+          <AIGenerateModal
+            open={aiModalOpen}
+            onClose={() => setAIModalOpen(false)}
+            onSelect={handleAISelect}
+          />
         </Paper>
       </Fade>
     </Box>

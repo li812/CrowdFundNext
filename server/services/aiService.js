@@ -28,4 +28,36 @@ async function chatWithHoppy(userMessage) {
   return text;
 }
 
-module.exports = { chatWithHoppy };
+async function generateCampaignContent(userPrompt) {
+  const engineeredPrompt = `You are an expert crowdfunding campaign copywriter.\n\nGiven the following user prompt, generate 5 creative, concise, and relevant campaign titles (max 25 characters each) and 5 compelling campaign descriptions (max 250 characters each) suitable for a crowdfunding platform.\n\n- Titles: catchy, clear, under 25 characters.\n- Descriptions: 1-3 sentences, persuasive, under 250 characters.\n- Output only a JSON object with keys \'titles\' and \'descriptions\'.\n- Do not include any explanation, markdown, or code block. Only output the JSON object.\n\nUser prompt: \"${userPrompt}\"`;
+
+  const response = await ai.models.generateContent({
+    model: "gemini-1.5-flash",
+    contents: [
+      { role: "user", parts: [{ text: engineeredPrompt }] }
+    ],
+  });
+  let text =
+    response?.candidates?.[0]?.content?.parts?.[0]?.text ||
+    response?.text ||
+    "{}";
+
+  // Fallback: strip code block markers if present
+  text = text.trim();
+  if (text.startsWith('```json')) {
+    text = text.replace(/^```json/, '').replace(/```$/, '').trim();
+  } else if (text.startsWith('```')) {
+    text = text.replace(/^```/, '').replace(/```$/, '').trim();
+  }
+
+  let result;
+  try {
+    result = JSON.parse(text);
+    if (!Array.isArray(result.titles) || !Array.isArray(result.descriptions)) throw new Error();
+  } catch {
+    throw new Error('AI response was not valid JSON.');
+  }
+  return result;
+}
+
+module.exports = { chatWithHoppy, generateCampaignContent };

@@ -1,4 +1,4 @@
-const { chatWithHoppy } = require('../services/aiService');
+const { chatWithHoppy, generateCampaignContent: generateCampaignContentAI } = require('../services/aiService');
 
 async function chat(req, res) {
   try {
@@ -12,4 +12,18 @@ async function chat(req, res) {
   }
 }
 
-module.exports = { chat };
+async function generateCampaignContent(req, res) {
+  try {
+    const { prompt } = req.body;
+    if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
+      return res.status(400).json({ error: 'Prompt is required.' });
+    }
+    const result = await generateCampaignContentAI(prompt);
+    res.json(result);
+  } catch (err) {
+    console.error('AI generateCampaignContent error:', err);
+    res.status(500).json({ error: err.message || 'AI service failed.' });
+  }
+}
+
+module.exports = { chat, generateCampaignContent };

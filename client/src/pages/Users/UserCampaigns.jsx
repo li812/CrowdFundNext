@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, Grid, CircularProgress, Alert, Snackbar } from '@mui/material';
 import CampaignCard from '../../components/Card/CampainCard/CampainCard';
-import EditCampaignModal from './EditCampaignModal';
+import EditCampaignModal from '../../components/Card/CampainCard/EditCampaignModal';
 
 function UserCampaigns() {
   const [campaigns, setCampaigns] = useState([]);
