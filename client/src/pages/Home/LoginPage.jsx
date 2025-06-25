@@ -100,9 +100,16 @@ const LoginPage = () => {
       await signInWithPopup(auth, googleProvider);
       const token = await auth.currentUser.getIdToken(true);
       localStorage.setItem('jwt', token);
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      if (payload.userType) localStorage.setItem('userType', payload.userType);
-      else localStorage.removeItem('userType');
+
+      // Check if user exists in MongoDB
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.status === 404) {
+        // User not in MongoDB, redirect to complete registration
+        window.location.href = '/complete-register';
+        return;
+      }
       setSuccess(true);
       setTimeout(() => { window.location.href = '/'; }, 1200);
     } catch (error) {

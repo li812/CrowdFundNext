@@ -16,6 +16,7 @@ import AdminHome from './pages/Admin/AdminHome';
 import AdminSettings from './pages/Admin/AdminSettings';
 import UserHome from './pages/Users/UserHome';
 import UserSettings from './pages/Users/UserSettings';
+import CompleteRegisterPage from './pages/Home/CompleteRegisterPage';
 import { useThemeMode } from './context/ThemeContext';
 
 const theme = createTheme({
@@ -87,6 +88,7 @@ function App() {
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/complete-register" element={<CompleteRegisterPage />} />
           </Route>
           {/* Admin routes */}
           <Route path="/admin/*" element={<AdminBase />}>
