@@ -1,14 +1,21 @@
 {
-  "files.exclude": {
-    "node_modules": true,
-    "dist": true,
-    "build": true
-  },
   "search.exclude": {
-    "node_modules": true,
-    "dist": true,
-    "build": true
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/build": true
   },
-  "javascript.suggest.enabled": true,
-  "typescript.tsserver.log": "off"
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/build": true
+  },
+  "javascript.suggest.autoImports": false,
+  "typescript.suggest.autoImports": false,
+  "javascript.validate.enable": false,
+  "typescript.validate.enable": false,
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/build/**": true
+  }
 }
