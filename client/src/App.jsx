@@ -18,6 +18,8 @@ import UserHome from './pages/Users/UserHome';
 import UserSettings from './pages/Users/UserSettings';
 import CompleteRegisterPage from './pages/Home/CompleteRegisterPage';
 import { useThemeMode } from './context/ThemeContext';
+import ChatBotFloatingButton from './components/ChatBot/ChatBotFloatingButton/ChatBotFloatingButton';
+import ChatBotFloatingUI from './components/ChatBot/ChatBotFloatingUI/ChatBotFloatingUI';
 
 const theme = createTheme({
   palette: {
@@ -104,6 +106,8 @@ function App() {
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
+        <ChatBotFloatingButton />
+        <ChatBotFloatingUI />
       </Router>
     </ThemeProvider>
   );
