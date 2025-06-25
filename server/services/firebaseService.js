@@ -7,4 +7,14 @@ async function setUserTypeClaim(uid, userType = 'user') {
   }
 }
 
-module.exports = { setUserTypeClaim };
+// Delete a user from Firebase Auth by UID
+async function deleteFirebaseUser(uid) {
+  try {
+    await admin.auth().deleteUser(uid);
+    return true;
+  } catch (err) {
+    throw new Error('Failed to delete user from Firebase: ' + err.message);
+  }
+}
+
+module.exports = { setUserTypeClaim, deleteFirebaseUser };

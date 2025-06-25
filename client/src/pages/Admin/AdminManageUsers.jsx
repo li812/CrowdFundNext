@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Avatar, IconButton, TextField, InputAdornment, Dialog, DialogTitle, DialogContent, DialogActions, Button, Fade
+  Avatar, IconButton, TextField, InputAdornment, Dialog, DialogTitle, DialogContent, DialogActions, Button, Fade, CircularProgress, Alert
 } from '@mui/material';
 import { Delete, Search } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
@@ -28,59 +28,47 @@ const glass3DGlowStyle = (theme) => ({
   transition: 'box-shadow 0.3s'
 });
 
-// Mock user data
-const mockUsers = [
-  {
-    id: '1',
-    name: 'John Doe',
-    email: 'john@example.com',
-    avatar: '',
-    type: 'user',
-    status: 'active',
-    country: 'USA',
-    state: 'California',
-    city: 'San Francisco',
-  },
-  {
-    id: '2',
-    name: 'Jane Smith',
-    email: 'jane@example.com',
-    avatar: '',
-    type: 'admin',
-    status: 'active',
-    country: 'India',
-    state: 'Karnataka',
-    city: 'Bangalore',
-  },
-  {
-    id: '3',
-    name: 'Alice Johnson',
-    email: 'alice@example.com',
-    avatar: '',
-    type: 'user',
-    status: 'banned',
-    country: 'UK',
-    state: 'England',
-    city: 'London',
-  },
-  {
-    id: '4',
-    name: 'Bob Lee',
-    email: 'bob@example.com',
-    avatar: '',
-    type: 'user',
-    status: 'active',
-    country: 'Canada',
-    state: 'Ontario',
-    city: 'Toronto',
-  },
-];
-
 function AdminManageUsers() {
   const theme = useTheme();
-  const [users, setUsers] = useState(mockUsers);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [deleteDialog, setDeleteDialog] = useState({ open: false, user: null });
+  const [deleting, setDeleting] = useState(false);
+
+  // Fetch users from backend
+  const fetchUsers = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const token = localStorage.getItem('jwt');
+      const res = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/admin/users`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Failed to fetch users');
+      setUsers(data.users.map(u => ({
+        id: u._id,
+        name: u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : u.email,
+        email: u.email,
+        avatar: u.profilePicture ? `${import.meta.env.VITE_API_URL || ''}${u.profilePicture}` : undefined,
+        type: u.userType,
+        status: u.status || 'active',
+        country: u.country || '',
+        state: u.state || '',
+        city: u.city || '',
+      })));
+    } catch (err) {
+      setError(err.message || 'Failed to fetch users');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   // Filter users by search
   const filteredUsers = users.filter(
@@ -89,13 +77,27 @@ function AdminManageUsers() {
       u.email.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Handle delete (mock)
+  // Handle delete
   const handleDelete = (user) => {
     setDeleteDialog({ open: true, user });
   };
-  const confirmDelete = () => {
-    setUsers((prev) => prev.filter((u) => u.id !== deleteDialog.user.id));
-    setDeleteDialog({ open: false, user: null });
+  const confirmDelete = async () => {
+    setDeleting(true);
+    try {
+      const token = localStorage.getItem('jwt');
+      const res = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/admin/users/${deleteDialog.user.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Failed to delete user');
+      setDeleteDialog({ open: false, user: null });
+      fetchUsers();
+    } catch (err) {
+      setError(err.message || 'Failed to delete user');
+    } finally {
+      setDeleting(false);
+    }
   };
   const cancelDelete = () => setDeleteDialog({ open: false, user: null });
 
@@ -138,59 +140,66 @@ function AdminManageUsers() {
               }}
             />
           </Box>
-          <TableContainer component={Paper} sx={{ ...glass3DGlowStyle(theme), px: 0, py: 0 }}>
-            <Table stickyHeader>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Avatar</TableCell>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>User Type</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Country</TableCell>
-                  <TableCell>State</TableCell>
-                  <TableCell>City</TableCell>
-                  <TableCell align="center">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredUsers.length === 0 ? (
+          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <TableContainer component={Paper} sx={{ ...glass3DGlowStyle(theme), px: 0, py: 0 }}>
+              <Table stickyHeader>
+                <TableHead>
                   <TableRow>
-                    <TableCell colSpan={9} align="center">
-                      <Typography color="text.secondary">No users found.</Typography>
-                    </TableCell>
+                    <TableCell>Avatar</TableCell>
+                    <TableCell>Name</TableCell>
+                    <TableCell>Email</TableCell>
+                    <TableCell>User Type</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Country</TableCell>
+                    <TableCell>State</TableCell>
+                    <TableCell>City</TableCell>
+                    <TableCell align="center">Actions</TableCell>
                   </TableRow>
-                ) : (
-                  filteredUsers.map((user) => (
-                    <TableRow key={user.id} hover>
-                      <TableCell>
-                        <Avatar src={user.avatar} alt={user.name} sx={{ bgcolor: theme.palette.primary.main }}>
-                          {user.name[0]}
-                        </Avatar>
-                      </TableCell>
-                      <TableCell>{user.name}</TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell sx={{ textTransform: 'capitalize' }}>{user.type}</TableCell>
-                      <TableCell sx={{ textTransform: 'capitalize' }}>{user.status}</TableCell>
-                      <TableCell>{user.country}</TableCell>
-                      <TableCell>{user.state}</TableCell>
-                      <TableCell>{user.city}</TableCell>
-                      <TableCell align="center">
-                        <IconButton
-                          color="error"
-                          onClick={() => handleDelete(user)}
-                          disabled={user.type === 'admin'}
-                          title={user.type === 'admin' ? 'Cannot delete admin' : 'Delete user'}
-                        >
-                          <Delete />
-                        </IconButton>
+                </TableHead>
+                <TableBody>
+                  {filteredUsers.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={9} align="center">
+                        <Typography color="text.secondary">No users found.</Typography>
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                  ) : (
+                    filteredUsers.map((user) => (
+                      <TableRow key={user.id} hover>
+                        <TableCell>
+                          <Avatar src={user.avatar} alt={user.name} sx={{ bgcolor: theme.palette.primary.main }}>
+                            {user.name[0]}
+                          </Avatar>
+                        </TableCell>
+                        <TableCell>{user.name}</TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell sx={{ textTransform: 'capitalize' }}>{user.type}</TableCell>
+                        <TableCell sx={{ textTransform: 'capitalize' }}>{user.status}</TableCell>
+                        <TableCell>{user.country}</TableCell>
+                        <TableCell>{user.state}</TableCell>
+                        <TableCell>{user.city}</TableCell>
+                        <TableCell align="center">
+                          <IconButton
+                            color="error"
+                            onClick={() => handleDelete(user)}
+                            disabled={user.type === 'admin'}
+                            title={user.type === 'admin' ? 'Cannot delete admin' : 'Delete user'}
+                          >
+                            <Delete />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
         </Box>
       </Fade>
       {/* Delete confirmation dialog */}
@@ -201,7 +210,7 @@ function AdminManageUsers() {
         </DialogContent>
         <DialogActions>
           <Button onClick={cancelDelete} color="primary">Cancel</Button>
-          <Button onClick={confirmDelete} color="error" variant="contained">Delete</Button>
+          <Button onClick={confirmDelete} color="error" variant="contained" disabled={deleting}>{deleting ? 'Deleting...' : 'Delete'}</Button>
         </DialogActions>
       </Dialog>
     </Box>

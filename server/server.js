@@ -9,6 +9,7 @@ const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const campaignRoutes = require('./routes/campaignRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 // Connect to database
 connectDB();
@@ -39,6 +40,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/campaigns', campaignRoutes);
+app.use('/api/admin', adminRoutes);
 
 const PORT = process.env.PORT || 4800;
 
