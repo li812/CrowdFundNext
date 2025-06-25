@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { getAllUsers, deleteUserCompletely } = require('../controllers/adminController');
+const { getAllUsers, deleteUserCompletely, getDashboardStats } = require('../controllers/adminController');
+const adminCampaignController = require('../controllers/adminCampaignController');
 const verifyFirebaseToken = require('../middleware/verifyFirebaseToken');
 
 // Only allow admins
@@ -13,5 +14,12 @@ function requireAdmin(req, res, next) {
 router.get('/users', verifyFirebaseToken, requireAdmin, getAllUsers);
 // Delete user completely
 router.delete('/users/:id', verifyFirebaseToken, requireAdmin, deleteUserCompletely);
+// Dashboard stats
+router.get('/dashboard-stats', verifyFirebaseToken, requireAdmin, getDashboardStats);
+// Campaign management
+router.get('/campaigns', verifyFirebaseToken, requireAdmin, adminCampaignController.listCampaigns);
+router.patch('/campaigns/:id/status', verifyFirebaseToken, requireAdmin, adminCampaignController.updateCampaignStatus);
+router.delete('/campaigns/:id', verifyFirebaseToken, requireAdmin, adminCampaignController.deleteCampaign);
+router.get('/campaigns/:id', verifyFirebaseToken, requireAdmin, adminCampaignController.getCampaignDetails);
 
 module.exports = router; 

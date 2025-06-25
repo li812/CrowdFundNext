@@ -309,7 +309,7 @@ const RegisterPage = ({ prefill = {}, isCompleteRegistration = false }) => {
         return (
           <Box>
             <Grid container spacing={2}>
-              <Grid item xs={12}>
+              <Grid item xs={12} minWidth='180px' sx={{ mb: 2 }}>
                 <TextField
                   fullWidth
                   name="firstName"
@@ -330,7 +330,7 @@ const RegisterPage = ({ prefill = {}, isCompleteRegistration = false }) => {
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid item item xs={12} minWidth='180px' sx={{ mb: 2 }}>
                 <TextField
                   fullWidth
                   name="lastName"
@@ -353,7 +353,7 @@ const RegisterPage = ({ prefill = {}, isCompleteRegistration = false }) => {
 
 
 
-              <Grid item xs={12}>
+              <Grid item item xs={12} minWidth='180px' sx={{ mb: 2 }}>
                 <TextField
                   fullWidth
                   name="email"
@@ -375,7 +375,7 @@ const RegisterPage = ({ prefill = {}, isCompleteRegistration = false }) => {
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid item xs={12} minWidth='180px' sx={{ mb: 2 }}>
                 <TextField
                   fullWidth
                   name="phoneNumber"
@@ -396,7 +396,7 @@ const RegisterPage = ({ prefill = {}, isCompleteRegistration = false }) => {
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid item xs={12} minWidth='235px' sx={{ mb: 2 }}>
                 <TextField
                   fullWidth
                   name="dateOfBirth"
@@ -410,7 +410,7 @@ const RegisterPage = ({ prefill = {}, isCompleteRegistration = false }) => {
                   InputLabelProps={{ shrink: true }}
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={12} minWidth='235px' sx={{ mb: 2 }}>
                 <FormControl fullWidth error={!!errors.gender} disabled={isLoading}>
                   <InputLabel id="gender-label">Gender</InputLabel>
                   <Select
@@ -445,7 +445,7 @@ const RegisterPage = ({ prefill = {}, isCompleteRegistration = false }) => {
       case 1: // Security
         return (
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid item xs={12} minWidth='480px' sx={{ mb: 2 }}>
               <TextField
                 fullWidth
                 name="password"
@@ -476,7 +476,7 @@ const RegisterPage = ({ prefill = {}, isCompleteRegistration = false }) => {
                 }}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={12} minWidth='480px' sx={{ mb: 2 }}>
               <TextField
                 fullWidth
                 name="confirmPassword"
@@ -517,7 +517,7 @@ const RegisterPage = ({ prefill = {}, isCompleteRegistration = false }) => {
       case 2: // Location
         return (
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid item xs={12} minWidth='180px' sx={{ mb: 2 }}>
               <FormControl fullWidth error={!!errors.country}>
                 <InputLabel>Country</InputLabel>
                 <Select
@@ -544,7 +544,7 @@ const RegisterPage = ({ prefill = {}, isCompleteRegistration = false }) => {
                 )}
               </FormControl>
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={12} minWidth='180px' sx={{ mb: 2 }}>
               <FormControl fullWidth error={!!errors.state}>
                 <InputLabel>State/Province</InputLabel>
                 <Select
@@ -566,7 +566,7 @@ const RegisterPage = ({ prefill = {}, isCompleteRegistration = false }) => {
                 )}
               </FormControl>
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={12} minWidth='180px' sx={{ mb: 2 }}>
               <TextField
                 fullWidth
                 name="pincode"
@@ -578,7 +578,7 @@ const RegisterPage = ({ prefill = {}, isCompleteRegistration = false }) => {
                 disabled={isLoading}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={12} minWidth='180px' sx={{ mb: 2 }}>
               <FormControl fullWidth error={!!errors.city}>
                 <InputLabel>City</InputLabel>
                 <Select

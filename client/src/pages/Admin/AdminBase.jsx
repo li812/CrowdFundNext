@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
@@ -24,7 +24,8 @@ import {
   Dashboard as DashboardIcon,
   Brightness4,
   Brightness7,
-  People as PeopleIcon
+  People as PeopleIcon,
+  DoneAll as DoneAllIcon
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { useThemeMode } from '../../context/ThemeContext';
@@ -36,6 +37,7 @@ const adminMenu = [
   { label: 'Home', icon: <HomeIcon />, path: '/admin/home' },
   { label: 'Settings', icon: <SettingsIcon />, path: '/admin/settings' },
   { label: 'Manage Users', icon: <PeopleIcon />, path: '/admin/manage-users' },
+  { label: 'Manage Campaigns', icon: <DoneAllIcon />, path: '/admin/manage-campaigns' },
 ];
 
 function getUserFromJWT() {
@@ -77,6 +79,7 @@ const glassyDrawer = (theme) => ({
 const AdminBase = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const user = getUserFromJWT();
   const theme = useTheme();
   const { mode, toggleTheme } = useThemeMode();
@@ -92,6 +95,14 @@ const AdminBase = () => {
     localStorage.removeItem('jwt');
     localStorage.removeItem('userType');
     window.location.href = '/';
+  };
+
+  // Determine active menu item robustly
+  const isActive = (itemPath) => {
+    if (itemPath === '/admin') {
+      return location.pathname === '/admin';
+    }
+    return location.pathname.startsWith(itemPath);
   };
 
   return (
@@ -188,7 +199,7 @@ const AdminBase = () => {
                     fontWeight: 700,
                   },
                 }}
-                selected={window.location.pathname === item.path}
+                selected={isActive(item.path)}
               >
                 <ListItemIcon sx={{ color: theme.palette.primary.main }}>{item.icon}</ListItemIcon>
                 <ListItemText primary={item.label} />

@@ -1,5 +1,6 @@
 const User = require('../models/Users');
 const { deleteFirebaseUser } = require('../services/firebaseService');
+const Campaign = require('../models/Campaign');
 
 // Get all users (for admin dashboard)
 exports.getAllUsers = async (req, res) => {
@@ -22,5 +23,29 @@ exports.deleteUserCompletely = async (req, res) => {
     res.json({ success: true, message: 'User deleted from Firebase and MongoDB.' });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message || 'Failed to delete user.' });
+  }
+};
+
+// Admin dashboard stats
+exports.getDashboardStats = async (req, res) => {
+  try {
+    const [totalUsers, activeCampaigns, pendingCampaigns, fundsAgg] = await Promise.all([
+      User.countDocuments(),
+      Campaign.countDocuments({ status: 'approved' }),
+      Campaign.countDocuments({ status: 'pending' }),
+      Campaign.aggregate([
+        { $group: { _id: null, total: { $sum: '$amountReceived' } } }
+      ])
+    ]);
+    const totalFundsRaised = fundsAgg[0]?.total || 0;
+    res.json({
+      success: true,
+      totalUsers,
+      activeCampaigns,
+      pendingCampaigns,
+      totalFundsRaised
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message || 'Failed to fetch dashboard stats.' });
   }
 }; 
