@@ -34,8 +34,8 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { Country, State, City } from 'country-state-city';
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from '../../utils/firebase';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from '../../utils/firebase';
 import { motion } from 'framer-motion';
 import { useTheme } from '@mui/material/styles';
 
@@ -111,6 +111,7 @@ const RegisterPage = ({ prefill = {}, isCompleteRegistration = false }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -277,27 +278,25 @@ const RegisterPage = ({ prefill = {}, isCompleteRegistration = false }) => {
 
   const handleGoogleSignUp = async () => {
     setIsLoading(true);
+    setSuccess(false);
     try {
-      // 1. Sign in with Google
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-      const idToken = await user.getIdToken();
+      await signInWithPopup(auth, googleProvider);
+      const token = await auth.currentUser.getIdToken(true);
+      localStorage.setItem('jwt', token);
 
-      // 2. Check if user exists in MongoDB
+      // Check if user exists in MongoDB
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/me`, {
-        headers: { Authorization: `Bearer ${idToken}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
       if (res.status === 404) {
         // User not in MongoDB, redirect to complete registration
-        localStorage.setItem('jwt', idToken);
         window.location.href = '/complete-register';
         return;
       }
-      // User exists, proceed to home/dashboard
-      localStorage.setItem('jwt', idToken);
-      window.location.href = '/';
+      setSuccess(true);
+      setTimeout(() => { window.location.href = '/'; }, 1200);
     } catch (error) {
-      setErrors({ general: 'Google sign-up failed. Please try again.' });
+      setErrors({ general: error.message || 'Google sign up failed. Please try again.' });
     } finally {
       setIsLoading(false);
     }

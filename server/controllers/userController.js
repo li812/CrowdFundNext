@@ -9,7 +9,7 @@ async function registerUser(req, res) {
     const { uid, email } = req.user;
     const {
       firstName, lastName, gender, dateOfBirth, phoneNumber,
-      country, state, city, pincode
+      country, state, city, pincode, password // <-- add password
     } = req.body;
 
     // Check if user exists
@@ -39,11 +39,15 @@ async function registerUser(req, res) {
       profilePicture,
       userType: 'user'
     });
-    console.log('Registering user:', user);
     await user.save();
 
     // Set Firebase custom claim
     await setUserTypeClaim(uid, 'user');
+
+    // If password provided, set it in Firebase Auth (for Google users)
+    if (password) {
+      await admin.auth().updateUser(uid, { password });
+    }
 
     res.status(201).json({ success: true, user });
   } catch (err) {
