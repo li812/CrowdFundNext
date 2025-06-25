@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   TextField,
@@ -102,7 +102,7 @@ const AnimatedBg = () => (
   </>
 );
 
-const RegisterPage = () => {
+const RegisterPage = ({ prefill = {}, isCompleteRegistration = false }) => {
   const theme = useTheme();
   const [activeStep, setActiveStep] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
@@ -114,11 +114,11 @@ const RegisterPage = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    firstName: prefill.firstName || '',
+    lastName: prefill.lastName || '',
     gender: '',
     dateOfBirth: '',
-    email: '',
+    email: prefill.email || '',
     phoneNumber: '',
     password: '',
     confirmPassword: '',
@@ -128,6 +128,21 @@ const RegisterPage = () => {
     pincode: '',
     profilePicture: null
   });
+
+  useEffect(() => {
+    setFormData(prev => {
+      // Only update if prefill values are different
+      let changed = false;
+      const updated = { ...prev };
+      for (const key in prefill) {
+        if (prefill[key] && prefill[key] !== prev[key]) {
+          updated[key] = prefill[key];
+          changed = true;
+        }
+      }
+      return changed ? updated : prev;
+    });
+  }, [prefill]);
 
   // Merge Personal Info + Contact
   const steps = ['Basic Info', 'Security', 'Location', 'Profile Picture'];
@@ -223,18 +238,27 @@ const RegisterPage = () => {
     if (!validateStep(activeStep)) return;
     setIsLoading(true);
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        formData.email,
-        formData.password
-      );
-      const user = userCredential.user;
-      const idToken = await user.getIdToken();
+      let idToken;
+      if (isCompleteRegistration) {
+        // Use JWT from localStorage (from Google sign-in)
+        idToken = localStorage.getItem('jwt');
+      } else {
+        // Normal registration: create Firebase Auth user
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          formData.email,
+          formData.password
+        );
+        const user = userCredential.user;
+        idToken = await user.getIdToken();
+      }
+
       const data = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
         if (key === 'profilePicture' && value) data.append('profilePicture', value);
         else if (value) data.append(key, value);
       });
+
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/register`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${idToken}` },
@@ -254,8 +278,24 @@ const RegisterPage = () => {
   const handleGoogleSignUp = async () => {
     setIsLoading(true);
     try {
-      // TODO: Implement Firebase Google sign-up
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // 1. Sign in with Google
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      const idToken = await user.getIdToken();
+
+      // 2. Check if user exists in MongoDB
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/me`, {
+        headers: { Authorization: `Bearer ${idToken}` }
+      });
+      if (res.status === 404) {
+        // User not in MongoDB, redirect to complete registration
+        localStorage.setItem('jwt', idToken);
+        window.location.href = '/complete-register';
+        return;
+      }
+      // User exists, proceed to home/dashboard
+      localStorage.setItem('jwt', idToken);
+      window.location.href = '/';
     } catch (error) {
       setErrors({ general: 'Google sign-up failed. Please try again.' });
     } finally {

@@ -30,7 +30,7 @@ import {
   ContactMail as ContactIcon,
   AccountCircle
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useUser } from '../../../context/UserContext';
 import { useThemeMode } from '../../../context/ThemeContext';
 
@@ -59,6 +59,7 @@ const HomeTopNavBar = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
+  const location = useLocation();
 
   const profile = useUser();
   const { mode, toggleTheme } = useThemeMode();
@@ -130,31 +131,39 @@ const HomeTopNavBar = () => {
             {/* Desktop Navigation */}
             {!isMobile && (
               <Stack direction="row" spacing={2} sx={{ flexGrow: 1 }}>
-                {navLinks.map((item) => (
-                  <Button
-                    key={item.label}
-                    onClick={() => navigate(item.path)}
-                    startIcon={item.icon}
-                    sx={{
-                      fontWeight: 700,
-                      fontSize: '1.1rem',
-                      color: theme.palette.text.primary,
-                      px: 2,
-                      py: 1,
-                      borderRadius: 2,
-                      background: 'transparent',
-                      transition: 'background 0.2s, color 0.2s',
-                      '&:hover': {
-                        background: theme.palette.mode === 'dark'
-                          ? 'rgba(58,134,255,0.08)'
-                          : 'rgba(58,134,255,0.10)',
-                        color: theme.palette.primary.main
-                      }
-                    }}
-                  >
-                    {item.label}
-                  </Button>
-                ))}
+                {navLinks.map((item) => {
+                  const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
+                  return (
+                    <Button
+                      key={item.label}
+                      onClick={() => navigate(item.path)}
+                      startIcon={item.icon}
+                      sx={{
+                        fontWeight: 700,
+                        fontSize: '1.1rem',
+                        color: isActive ? theme.palette.primary.main : theme.palette.text.primary,
+                        px: 2,
+                        py: 1,
+                        borderRadius: 2,
+                        background: isActive
+                          ? (theme.palette.mode === 'dark'
+                              ? 'rgba(58,134,255,0.13)'
+                              : 'rgba(58,134,255,0.10)')
+                          : 'transparent',
+                        boxShadow: isActive ? '0 2px 12px 0 #3a86ff22' : 'none',
+                        transition: 'background 0.2s, color 0.2s',
+                        '&:hover': {
+                          background: theme.palette.mode === 'dark'
+                            ? 'rgba(58,134,255,0.18)'
+                            : 'rgba(58,134,255,0.15)',
+                          color: theme.palette.primary.main
+                        }
+                      }}
+                    >
+                      {item.label}
+                    </Button>
+                  );
+                })}
               </Stack>
             )}
 
