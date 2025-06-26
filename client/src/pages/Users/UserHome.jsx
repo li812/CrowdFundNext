@@ -161,18 +161,7 @@ function UserHome() {
 
       <Divider sx={{ my: 4 }} />
 
-      {/* Tips or Platform Updates */}
-      <Box sx={{ mt: 4, p: 3, bgcolor: 'background.paper', borderRadius: 3, boxShadow: 2 }}>
-        <Typography variant="h6" fontWeight={700} sx={{ mb: 1 }}>
-          Tips for Success
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          - Make your campaign title short and memorable.<br />
-          - Use high-quality photos to attract more backers.<br />
-          - Share your campaign with friends and on social media.<br />
-          - Be transparent and update your supporters regularly.<br />
-        </Typography>
-      </Box>
+      
     </Box>
   );
 }

@@ -98,8 +98,45 @@ async function deleteCurrentUser(req, res) {
   }
 }
 
+async function updateCurrentUser(req, res) {
+  try {
+    const { uid } = req.user;
+    const user = await User.findById(uid);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Only allow updating certain fields
+    const updatableFields = [
+      'firstName', 'lastName', 'phoneNumber', 'country', 'state', 'city', 'pincode'
+    ];
+    updatableFields.forEach(field => {
+      if (req.body[field] !== undefined) user[field] = req.body[field];
+    });
+
+    // Handle profile picture upload
+    if (req.file) {
+      // Delete old profile picture if exists
+      if (user.profilePicture) {
+        const oldPicPath = path.join(__dirname, '..', user.profilePicture);
+        fs.unlink(oldPicPath, err => {
+          if (err && err.code !== 'ENOENT') {
+            console.error('Failed to delete old profile picture:', err.message);
+          }
+        });
+      }
+      user.profilePicture = `/uploads/profile_pics/${req.file.filename}`;
+    }
+
+    await user.save();
+    res.json({ success: true, user });
+  } catch (err) {
+    console.error('Update user error:', err);
+    res.status(500).json({ error: 'Failed to update profile.' });
+  }
+}
+
 module.exports = {
   registerUser,
   getCurrentUser,
   deleteCurrentUser,
+  updateCurrentUser,
 };

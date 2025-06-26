@@ -12,7 +12,7 @@ const UserSchema = new mongoose.Schema({
   state: String,
   city: String,
   pincode: String,
-  profilePicture: String, // URL or file path
+  profilePicture: String, 
   userType: { type: String, default: 'user' },
   createdAt: { type: Date, default: Date.now }
 });
