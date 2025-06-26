@@ -3,7 +3,8 @@ const { uploadCampaign } = require('../services/campaignFileService');
 const verifyFirebaseToken = require('../middleware/verifyFirebaseToken');
 const {
   createCampaign, getMyCampaigns, getPendingCampaigns,
-  approveCampaign, rejectCampaign, donateToCampaign, deleteCampaign, updateCampaign, getAllCampaigns
+  approveCampaign, rejectCampaign, donateToCampaign, deleteCampaign, updateCampaign, getAllCampaigns,
+  likeCampaign, addComment, getComments
 } = require('../controllers/campaignController');
 
 const router = express.Router();
@@ -51,5 +52,14 @@ router.get('/', getAllCampaigns);
 
 // Public: get available countries and states for filters
 router.get('/available-countries-states', require('../controllers/campaignController').getAvailableCountriesAndStates);
+
+// Like/unlike a campaign
+router.post('/:id/like', verifyFirebaseToken, likeCampaign);
+
+// Add a comment
+router.post('/:id/comments', verifyFirebaseToken, addComment);
+
+// Get all comments
+router.get('/:id/comments', verifyFirebaseToken, getComments);
 
 module.exports = router;

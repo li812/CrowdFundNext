@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Card, CardContent, CardMedia, Typography, Box, Button, Chip, Stack, LinearProgress, IconButton, Tooltip, Link as MuiLink
+  Card, CardContent, CardMedia, Typography, Box, Button, Chip, Stack, LinearProgress, IconButton, Tooltip, Link as MuiLink, Dialog, DialogTitle, DialogContent, DialogActions, TextField, CircularProgress
 } from '@mui/material';
-import { Edit, Delete, AttachMoney, Info, ArrowBackIos, ArrowForwardIos, PictureAsPdf, Link as LinkIcon } from '@mui/icons-material';
+import { Edit, Delete, AttachMoney, Info, ArrowBackIos, ArrowForwardIos, PictureAsPdf, Link as LinkIcon, Lock, Share, FavoriteBorder, Favorite, ChatBubbleOutline } from '@mui/icons-material';
 
 function CampaignCard({
   campaign,
@@ -41,13 +41,99 @@ function CampaignCard({
     setImgIdx((prev) => (prev === photos.length - 1 ? 0 : prev + 1));
   };
 
+  // Like/comment state
+  const [likeCount, setLikeCount] = useState(campaign.likes ? campaign.likes.length : 0);
+  const [liked, setLiked] = useState(false);
+  const [commentCount, setCommentCount] = useState(campaign.comments ? campaign.comments.length : 0);
+  const [commentModalOpen, setCommentModalOpen] = useState(false);
+  const [comments, setComments] = useState([]);
+  const [commentText, setCommentText] = useState('');
+  const [commentLoading, setCommentLoading] = useState(false);
+  const [commentError, setCommentError] = useState('');
+
+  // Check if current user liked this campaign
+  useEffect(() => {
+    const userId = localStorage.getItem('userId');
+    if (campaign.likes && userId) {
+      setLiked(campaign.likes.includes(userId));
+    }
+    setLikeCount(campaign.likes ? campaign.likes.length : 0);
+    setCommentCount(campaign.comments ? campaign.comments.length : 0);
+  }, [campaign.likes, campaign.comments]);
+
+  // Like/unlike handler
+  const handleLike = async (e) => {
+    e.stopPropagation();
+    const token = localStorage.getItem('jwt');
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/campaigns/${campaign._id}/like`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setLiked(data.liked);
+        setLikeCount(data.likeCount);
+      }
+    } catch {}
+  };
+
+  // Comment modal handlers
+  const openCommentModal = (e) => { e.stopPropagation(); setCommentModalOpen(true); fetchComments(); };
+  const closeCommentModal = () => { setCommentModalOpen(false); setCommentText(''); setCommentError(''); };
+  const fetchComments = async () => {
+    setCommentLoading(true);
+    setCommentError('');
+    const token = localStorage.getItem('jwt');
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/campaigns/${campaign._id}/comments`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) setComments(data.comments);
+      setCommentCount(data.comments.length);
+    } catch (err) {
+      setCommentError('Failed to load comments');
+    } finally {
+      setCommentLoading(false);
+    }
+  };
+  const handleAddComment = async () => {
+    if (!commentText.trim()) return;
+    setCommentLoading(true);
+    setCommentError('');
+    const token = localStorage.getItem('jwt');
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/campaigns/${campaign._id}/comments`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ text: commentText })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setComments(prev => [...prev, data.comment]);
+        setCommentText('');
+        setCommentCount(prev => prev + 1);
+      } else {
+        setCommentError(data.error || 'Failed to add comment');
+      }
+    } catch (err) {
+      setCommentError('Failed to add comment');
+    } finally {
+      setCommentLoading(false);
+    }
+  };
+
   return (
     <Card sx={{
       maxWidth: 350,
       minWidth: 350,
       width: '100%',
       maxHeight: 680,
-      minHeight: 600,
+      minHeight: 680,
       display: 'flex',
       flexDirection: 'column',
       m: 2,
@@ -97,6 +183,45 @@ function CampaignCard({
             </Box>
           </>
         )}
+        {/* Instagram-style actions and counts */}
+        <Box sx={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          width: '100%',
+          bgcolor: 'rgba(255,255,255,0.92)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          px: 1.5,
+          py: 0.5,
+          borderTopLeftRadius: 12,
+          borderTopRightRadius: 12,
+          boxShadow: '0 -2px 8px 0 #3a86ff11',
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <IconButton size="small" color="primary" onClick={e => { e.stopPropagation(); alert('Lock (private) feature coming soon!'); }}>
+              <Lock fontSize="small" />
+            </IconButton>
+            <IconButton size="small" color="primary" onClick={e => { e.stopPropagation(); alert('Share feature coming soon!'); }}>
+              <Share fontSize="small" />
+            </IconButton>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <IconButton size="small" color={liked ? 'error' : 'default'} onClick={handleLike} sx={{ p: 0.5 }}>
+                {liked ? <Favorite fontSize="small" /> : <FavoriteBorder fontSize="small" />}
+              </IconButton>
+              <Typography variant="caption" color="text.secondary">{likeCount}</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <IconButton size="small" color="primary" onClick={openCommentModal} sx={{ p: 0.5 }}>
+                <ChatBubbleOutline fontSize="small" />
+              </IconButton>
+              <Typography variant="caption" color="text.secondary">{commentCount}</Typography>
+            </Box>
+          </Box>
+        </Box>
       </Box>
       <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', p: 2, height: '100%' }}>
         <Box sx={{ flexGrow: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
@@ -162,6 +287,47 @@ function CampaignCard({
           </Stack>
         </Box>
       </CardContent>
+      {/* Comment Modal */}
+      <Dialog open={commentModalOpen} onClose={closeCommentModal} maxWidth="sm" fullWidth>
+        <DialogTitle>Comments</DialogTitle>
+        <DialogContent dividers sx={{ minHeight: 200, maxHeight: 400, overflowY: 'auto' }}>
+          {commentLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}><CircularProgress size={24} /></Box>
+          ) : commentError ? (
+            <Typography color="error">{commentError}</Typography>
+          ) : comments.length === 0 ? (
+            <Typography color="text.secondary">No comments yet. Be the first to comment!</Typography>
+          ) : (
+            <Stack spacing={2}>
+              {comments.map((c, idx) => (
+                <Box key={idx} sx={{ bgcolor: 'background.paper', p: 1.5, borderRadius: 2, boxShadow: 1 }}>
+                  <Typography variant="subtitle2" color="primary.main">{c.userName || 'User'}</Typography>
+                  <Typography variant="body2" sx={{ mb: 0.5 }}>{c.text}</Typography>
+                  <Typography variant="caption" color="text.secondary">{new Date(c.createdAt).toLocaleString()}</Typography>
+                </Box>
+              ))}
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ flexDirection: 'column', alignItems: 'stretch', gap: 1, p: 2 }}>
+          <TextField
+            label="Add a comment"
+            value={commentText}
+            onChange={e => setCommentText(e.target.value)}
+            fullWidth
+            multiline
+            minRows={1}
+            maxRows={4}
+            disabled={commentLoading}
+            error={!!commentError}
+            helperText={commentError}
+          />
+          <Button onClick={handleAddComment} variant="contained" disabled={commentLoading || !commentText.trim()}>
+            Post
+          </Button>
+          <Button onClick={closeCommentModal} color="secondary">Close</Button>
+        </DialogActions>
+      </Dialog>
     </Card>
   );
 }

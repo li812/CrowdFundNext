@@ -222,6 +222,53 @@ async function getAvailableCountriesAndStates(req, res) {
   }
 }
 
+// Like/unlike a campaign
+async function likeCampaign(req, res) {
+  try {
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) return res.status(404).json({ error: 'Not found' });
+    const userId = req.user.uid;
+    const idx = campaign.likes.indexOf(userId);
+    if (idx === -1) {
+      campaign.likes.push(userId);
+    } else {
+      campaign.likes.splice(idx, 1);
+    }
+    await campaign.save();
+    res.json({ success: true, liked: idx === -1, likeCount: campaign.likes.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+// Add a comment
+async function addComment(req, res) {
+  try {
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) return res.status(404).json({ error: 'Not found' });
+    const { text } = req.body;
+    if (!text || !text.trim()) return res.status(400).json({ error: 'Comment text required' });
+    const userId = req.user.uid;
+    const userName = req.user.name || req.user.email || 'User';
+    campaign.comments.push({ userId, userName, text });
+    await campaign.save();
+    res.json({ success: true, comment: campaign.comments[campaign.comments.length - 1] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+// Get all comments for a campaign
+async function getComments(req, res) {
+  try {
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) return res.status(404).json({ error: 'Not found' });
+    res.json({ success: true, comments: campaign.comments });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
 module.exports = {
   createCampaign,
   getMyCampaigns,
@@ -234,4 +281,7 @@ module.exports = {
   getAllCampaigns,
   getRecentUserActivity,
   getAvailableCountriesAndStates,
+  likeCampaign,
+  addComment,
+  getComments,
 };
