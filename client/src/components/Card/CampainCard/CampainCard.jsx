@@ -28,8 +28,8 @@ function CampaignCard({
   // Status color
   const statusColor =
     campaign.status === 'approved' ? 'success' :
-    campaign.status === 'pending' ? 'warning' :
-    campaign.status === 'rejected' ? 'error' : 'default';
+      campaign.status === 'pending' ? 'warning' :
+        campaign.status === 'rejected' ? 'error' : 'default';
 
   // Carousel controls
   const handlePrev = (e) => {
@@ -75,7 +75,7 @@ function CampaignCard({
         setLiked(data.liked);
         setLikeCount(data.likeCount);
       }
-    } catch {}
+    } catch { }
   };
 
   // Comment modal handlers
@@ -132,8 +132,8 @@ function CampaignCard({
       maxWidth: 350,
       minWidth: 350,
       width: '100%',
-      maxHeight: 680,
-      minHeight: 680,
+      maxHeight: 480,
+      minHeight: 580,
       display: 'flex',
       flexDirection: 'column',
       m: 2,
@@ -183,45 +183,6 @@ function CampaignCard({
             </Box>
           </>
         )}
-        {/* Instagram-style actions and counts */}
-        <Box sx={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          width: '100%',
-          bgcolor: 'rgba(255,255,255,0.92)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          px: 1.5,
-          py: 0.5,
-          borderTopLeftRadius: 12,
-          borderTopRightRadius: 12,
-          boxShadow: '0 -2px 8px 0 #3a86ff11',
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <IconButton size="small" color="primary" onClick={e => { e.stopPropagation(); alert('Lock (private) feature coming soon!'); }}>
-              <Lock fontSize="small" />
-            </IconButton>
-            <IconButton size="small" color="primary" onClick={e => { e.stopPropagation(); alert('Share feature coming soon!'); }}>
-              <Share fontSize="small" />
-            </IconButton>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <IconButton size="small" color={liked ? 'error' : 'default'} onClick={handleLike} sx={{ p: 0.5 }}>
-                {liked ? <Favorite fontSize="small" /> : <FavoriteBorder fontSize="small" />}
-              </IconButton>
-              <Typography variant="caption" color="text.secondary">{likeCount}</Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <IconButton size="small" color="primary" onClick={openCommentModal} sx={{ p: 0.5 }}>
-                <ChatBubbleOutline fontSize="small" />
-              </IconButton>
-              <Typography variant="caption" color="text.secondary">{commentCount}</Typography>
-            </Box>
-          </Box>
-        </Box>
       </Box>
       <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', p: 2, height: '100%' }}>
         <Box sx={{ flexGrow: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
@@ -246,7 +207,7 @@ function CampaignCard({
               ${campaign.amountReceived} raised of ${campaign.amountNeeded} goal ({progress}%)
             </Typography>
           </Box>
-         
+
           {mode === 'mine' && campaign.status === 'rejected' && campaign.adminComment && (
             <Typography variant="caption" color="error" sx={{ mb: 1, display: 'block' }}>
               Admin: {campaign.adminComment}
@@ -284,6 +245,17 @@ function CampaignCard({
             >
               Details
             </Button>
+            <IconButton size="small" color={liked ? 'error' : 'default'} onClick={handleLike} sx={{ p: 0.5 }}>
+              {liked ? <Favorite fontSize="small" /> : <FavoriteBorder fontSize="small" />}
+            </IconButton>
+            <Typography variant="caption" color="text.secondary">{likeCount}</Typography>
+            <IconButton size="small" color="primary" onClick={openCommentModal} sx={{ p: 0.5 }}>
+              <ChatBubbleOutline fontSize="small" />
+            </IconButton>
+            <Typography variant="caption" color="text.secondary">{commentCount}</Typography>
+            <IconButton size="small" color="primary" onClick={e => { e.stopPropagation(); alert('Share feature coming soon!'); }}>
+              <Share fontSize="small" />
+            </IconButton>
           </Stack>
         </Box>
       </CardContent>
