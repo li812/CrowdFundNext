@@ -245,17 +245,19 @@ function CampaignCard({
             >
               Details
             </Button>
-            <IconButton size="small" color={liked ? 'error' : 'default'} onClick={handleLike} sx={{ p: 0.5 }}>
-              {liked ? <Favorite fontSize="small" /> : <FavoriteBorder fontSize="small" />}
-            </IconButton>
-            <Typography variant="caption" color="text.secondary">{likeCount}</Typography>
-            <IconButton size="small" color="primary" onClick={openCommentModal} sx={{ p: 0.5 }}>
-              <ChatBubbleOutline fontSize="small" />
-            </IconButton>
-            <Typography variant="caption" color="text.secondary">{commentCount}</Typography>
-            <IconButton size="small" color="primary" onClick={e => { e.stopPropagation(); alert('Share feature coming soon!'); }}>
-              <Share fontSize="small" />
-            </IconButton>
+            <Box>
+              <IconButton size="small" color={liked ? 'error' : 'default'} onClick={handleLike} sx={{ p: 0.5 }}>
+                {liked ? <Favorite fontSize="small" /> : <FavoriteBorder fontSize="small" />}
+              </IconButton>
+              <Typography variant="caption" color="text.secondary">{likeCount}</Typography>
+              <IconButton size="small" color="primary" onClick={openCommentModal} sx={{ p: 0.5 }}>
+                <ChatBubbleOutline fontSize="small" />
+              </IconButton>
+              <Typography variant="caption" color="text.secondary">{commentCount}</Typography>
+              <IconButton size="small" color="primary" onClick={e => { e.stopPropagation(); alert('Share feature coming soon!'); }}>
+                <Share fontSize="small" />
+              </IconButton>
+            </Box>
           </Stack>
         </Box>
       </CardContent>
