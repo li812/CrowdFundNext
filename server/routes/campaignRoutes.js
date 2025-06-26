@@ -3,7 +3,7 @@ const { uploadCampaign } = require('../services/campaignFileService');
 const verifyFirebaseToken = require('../middleware/verifyFirebaseToken');
 const {
   createCampaign, getMyCampaigns, getPendingCampaigns,
-  approveCampaign, rejectCampaign, donateToCampaign, deleteCampaign, updateCampaign
+  approveCampaign, rejectCampaign, donateToCampaign, deleteCampaign, updateCampaign, getAllCampaigns
 } = require('../controllers/campaignController');
 
 const router = express.Router();
@@ -45,5 +45,11 @@ router.patch(
 
 // User: delete campaign
 router.delete('/:id', verifyFirebaseToken, deleteCampaign);
+
+// Public: list all approved campaigns (discovery)
+router.get('/', getAllCampaigns);
+
+// Public: get available countries and states for filters
+router.get('/available-countries-states', require('../controllers/campaignController').getAvailableCountriesAndStates);
 
 module.exports = router;

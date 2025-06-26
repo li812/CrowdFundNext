@@ -143,6 +143,85 @@ async function updateCampaign(req, res) {
   }
 }
 
+// List all approved campaigns (for discovery)
+async function getAllCampaigns(req, res) {
+  try {
+    const { sort = 'new', limit = 6, type } = req.query;
+    const query = { status: 'approved' };
+    if (type) query.type = type;
+    let campaignsQuery = Campaign.find(query);
+    // Sorting
+    if (sort === 'new') {
+      campaignsQuery = campaignsQuery.sort({ createdAt: -1 });
+    } else if (sort === 'popular') {
+      campaignsQuery = campaignsQuery.sort({ amountReceived: -1 });
+    } else if (sort === 'ending') {
+      campaignsQuery = campaignsQuery.sort({ updatedAt: -1 });
+    }
+    // Limit
+    campaignsQuery = campaignsQuery.limit(Number(limit));
+    const campaigns = await campaignsQuery.exec();
+    res.json({ success: true, campaigns });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+// Get user's recent activity (last 3 supported or posted campaigns)
+async function getRecentUserActivity(req, res) {
+  try {
+    // Campaigns created by user
+    const posted = await Campaign.find({ createdBy: req.user.uid })
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .exec();
+    // TODO: Add supported campaigns if you track user donations
+    res.json({ success: true, posted });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+// Get available countries, states, and cities from users who created approved campaigns
+async function getAvailableCountriesAndStates(req, res) {
+  try {
+    // Find all approved campaigns and their creators
+    const campaigns = await Campaign.find({ status: 'approved' }, 'createdBy');
+    const userIds = campaigns.map(c => c.createdBy);
+    const users = await User.find({ _id: { $in: userIds } }, 'country state city');
+    const countrySet = new Set();
+    const stateMap = {};
+    const cityMap = {};
+    users.forEach(u => {
+      if (u.country) {
+        countrySet.add(u.country);
+        if (u.state) {
+          if (!stateMap[u.country]) stateMap[u.country] = new Set();
+          stateMap[u.country].add(u.state);
+          if (u.city) {
+            if (!cityMap[u.country]) cityMap[u.country] = {};
+            if (!cityMap[u.country][u.state]) cityMap[u.country][u.state] = new Set();
+            cityMap[u.country][u.state].add(u.city);
+          }
+        }
+      }
+    });
+    const countries = Array.from(countrySet);
+    const states = {};
+    const cities = {};
+    for (const country of countries) {
+      states[country] = Array.from(stateMap[country] || []);
+      cities[country] = {};
+      for (const state of states[country]) {
+        cities[country][state] = Array.from((cityMap[country] && cityMap[country][state]) || []);
+      }
+    }
+    res.json({ success: true, countries, states, cities });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
 module.exports = {
   createCampaign,
   getMyCampaigns,
@@ -152,4 +231,7 @@ module.exports = {
   donateToCampaign,
   deleteCampaign,
   updateCampaign,
+  getAllCampaigns,
+  getRecentUserActivity,
+  getAvailableCountriesAndStates,
 };
