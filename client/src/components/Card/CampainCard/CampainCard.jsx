@@ -47,7 +47,7 @@ function CampaignCard({
       minWidth: 350,
       width: '100%',
       maxHeight: 680,
-      minHeight: 680,
+      minHeight: 600,
       display: 'flex',
       flexDirection: 'column',
       m: 2,
@@ -121,43 +121,7 @@ function CampaignCard({
               ${campaign.amountReceived} raised of ${campaign.amountNeeded} goal ({progress}%)
             </Typography>
           </Box>
-          {/* Links */}
-          {campaign.links && campaign.links.length > 0 && (
-            <Stack direction="row" spacing={1} sx={{ mb: 1, flexWrap: 'wrap' }}>
-              {campaign.links.map((link, idx) => (
-                <Button
-                  key={idx}
-                  size="small"
-                  variant="outlined"
-                  color="primary"
-                  startIcon={<LinkIcon />}
-                  component={MuiLink}
-                  href={link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  sx={{ textTransform: 'none', mb: 0.5 }}
-                >
-                  Link {idx + 1}
-                </Button>
-              ))}
-            </Stack>
-          )}
-          {/* Support Document */}
-          {campaign.supportDocument && (
-            <Button
-              size="small"
-              variant="outlined"
-              color="secondary"
-              startIcon={<PictureAsPdf />}
-              component={MuiLink}
-              href={campaign.supportDocument.startsWith('http') ? campaign.supportDocument : `${import.meta.env.VITE_API_URL}${campaign.supportDocument}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              sx={{ textTransform: 'none', mb: 1 }}
-            >
-              View Support Document
-            </Button>
-          )}
+         
           {mode === 'mine' && campaign.status === 'rejected' && campaign.adminComment && (
             <Typography variant="caption" color="error" sx={{ mb: 1, display: 'block' }}>
               Admin: {campaign.adminComment}
