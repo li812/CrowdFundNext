@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, Typography, Grid, CircularProgress, Alert, Snackbar } from '@mui/material';
 import CampaignCard from '../../components/Card/CampainCard/CampainCard';
 import EditCampaignModal from '../../components/Card/CampainCard/EditCampaignModal';
+import CampaignDetailsModal from '../../components/Card/CampainCard/CampaignDetailsModal';
 
 function UserCampaigns() {
   const [campaigns, setCampaigns] = useState([]);
@@ -10,6 +11,9 @@ function UserCampaigns() {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [editModal, setEditModal] = useState({ open: false, campaign: null });
   const [editLoading, setEditLoading] = useState(false);
+  // Details modal state
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedCampaign, setSelectedCampaign] = useState(null);
 
   // Fetch user's campaigns
   const fetchCampaigns = async () => {
@@ -94,7 +98,15 @@ function UserCampaigns() {
     }
   };
 
-  const handleViewDetails = (campaign) => alert(`View details for: ${campaign.title} (coming soon)`);
+  // Details modal handlers
+  const handleViewDetails = (campaign) => {
+    setSelectedCampaign(campaign);
+    setDetailsOpen(true);
+  };
+  const handleCloseDetails = () => {
+    setDetailsOpen(false);
+    setSelectedCampaign(null);
+  };
 
   return (
     <Box sx={{ p: { xs: 1, md: 3 } }}>
@@ -139,6 +151,11 @@ function UserCampaigns() {
         onClose={handleEditCancel}
         onSubmit={handleEditSubmit}
         loading={editLoading}
+      />
+      <CampaignDetailsModal
+        open={detailsOpen}
+        campaign={selectedCampaign}
+        onClose={handleCloseDetails}
       />
     </Box>
   );
