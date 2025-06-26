@@ -120,17 +120,17 @@ const AdminBase = () => {
       >
         <Toolbar sx={{ minHeight: 80, px: 2, display: 'flex', justifyContent: 'space-between' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <IconButton
-              color="inherit"
-              edge="start"
-              onClick={handleDrawerToggle}
-              sx={{ mr: 2, display: { sm: 'none' } }}
-            >
-              <MenuIcon />
-            </IconButton>
+          <IconButton
+            color="inherit"
+            edge="start"
+            onClick={handleDrawerToggle}
+            sx={{ mr: 2, display: { sm: 'none' } }}
+          >
+            <MenuIcon />
+          </IconButton>
             <Typography variant="h4" noWrap sx={{ fontWeight: 900, letterSpacing: '-1.5px', background: 'linear-gradient(90deg, #3a86ff, #36f1cd 80%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', cursor: 'pointer' }} onClick={() => navigate('/admin')}>
               Admin
-            </Typography>
+          </Typography>
             <Box sx={{ ml: 1, px: 1.5, py: 0.5, borderRadius: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(58,134,255,0.13)' : 'rgba(58,134,255,0.10)', fontWeight: 700, fontSize: '0.95rem', color: theme.palette.primary.main }}>
               Dashboard
             </Box>
@@ -141,16 +141,16 @@ const AdminBase = () => {
                 {mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
               </IconButton>
             </Tooltip>
-            {user && (
+          {user && (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 2, px: 2, py: 1, borderRadius: 3, bgcolor: theme.palette.mode === 'dark' ? 'rgba(58,134,255,0.10)' : 'rgba(58,134,255,0.07)', boxShadow: '0 2px 8px 0 #3a86ff11' }}>
                 <Avatar src={user.picture} alt={user.name} sx={{ width: 44, height: 44, bgcolor: theme.palette.background.default, color: theme.palette.primary.main, border: `2px solid ${theme.palette.primary.main}` }}>
-                  {user.name ? user.name[0] : user.email[0]}
-                </Avatar>
+                {user.name ? user.name[0] : user.email[0]}
+              </Avatar>
                 <Typography variant="body1" sx={{ color: theme.palette.text.primary, fontWeight: 700, fontSize: '1.1rem' }}>
-                  {user.name || user.email}
-                </Typography>
-              </Box>
-            )}
+                {user.name || user.email}
+              </Typography>
+            </Box>
+          )}
           </Box>
         </Toolbar>
       </AppBar>

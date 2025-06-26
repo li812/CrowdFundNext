@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, Grid, CircularProgress, Alert, Divider, MenuItem, Select, FormControl, InputLabel, Stack } from '@mui/material';
 import CampaignCard from '../../components/Card/CampainCard/CampainCard';
+import CampaignDetailsModal from '../../components/Card/CampainCard/CampaignDetailsModal';
 // Optionally import country-state-city for real data
 // import { Country, State } from 'country-state-city';
 
@@ -24,6 +25,10 @@ function UserHome() {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Details modal state
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedCampaign, setSelectedCampaign] = useState(null);
 
   // Fetch available countries, states, and cities for filters
   useEffect(() => {
@@ -73,12 +78,16 @@ function UserHome() {
   };
 
   const handleViewDetails = (campaign) => {
-    // TODO: Implement campaign details navigation
-    alert(`View details for: ${campaign.title}`);
+    setSelectedCampaign(campaign);
+    setDetailsOpen(true);
+  };
+  const handleCloseDetails = () => {
+    setDetailsOpen(false);
+    setSelectedCampaign(null);
   };
 
   return (
-    <Box sx={{ p: { xs: 1, md: 3 }, maxWidth: 1200, mx: 'auto' }}>
+    <Box sx={{ p: { xs: 1, md: 3 }, maxWidth: 1700, mx: 'auto' }}>
       {/* Filters */}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3, flexWrap: 'wrap' }}>
         <FormControl sx={{ minWidth: 160 }} size="small" disabled={filterLoading}>
@@ -143,6 +152,12 @@ function UserHome() {
           ))}
         </Grid>
       )}
+
+      <CampaignDetailsModal
+        open={detailsOpen}
+        campaign={selectedCampaign}
+        onClose={handleCloseDetails}
+      />
 
       <Divider sx={{ my: 4 }} />
 
