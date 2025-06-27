@@ -25,6 +25,7 @@ import UserCampaigns from './pages/Users/UserCampaigns';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import AdminManageUsers from './pages/Admin/AdminManageUsers';
 import AdminManageCampaigns from './pages/Admin/AdminManageCampaigns';
+import AdminManageTransactions from './pages/Admin/AdminManageTransactions';
 
 const theme = createTheme({
   palette: {
@@ -104,6 +105,7 @@ function App() {
             <Route path="settings" element={<AdminSettings />} />
             <Route path="manage-users" element={<AdminManageUsers />} />
             <Route path="manage-campaigns" element={<AdminManageCampaigns />} />
+            <Route path= "manage-transactions" element={<AdminManageTransactions />} />
           </Route>
           {/* User routes */}
           <Route path="/user/*" element={<UserBase />}>

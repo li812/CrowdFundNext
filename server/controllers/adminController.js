@@ -1,6 +1,7 @@
 const User = require('../models/Users');
 const { deleteFirebaseUser } = require('../services/firebaseService');
 const Campaign = require('../models/Campaign');
+const Transaction = require('../models/Transaction');
 
 // Get all users (for admin dashboard)
 exports.getAllUsers = async (req, res) => {
@@ -47,5 +48,18 @@ exports.getDashboardStats = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message || 'Failed to fetch dashboard stats.' });
+  }
+};
+
+// Get all transactions (admin)
+exports.getAllTransactions = async (req, res) => {
+  try {
+    const transactions = await Transaction.find()
+      .populate('campaignId', 'title')
+      .populate('userId', 'firstName lastName email')
+      .sort({ createdAt: -1 });
+    res.json({ success: true, transactions });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 }; 

@@ -3,6 +3,8 @@ const router = express.Router();
 const { getAllUsers, deleteUserCompletely, getDashboardStats } = require('../controllers/adminController');
 const adminCampaignController = require('../controllers/adminCampaignController');
 const verifyFirebaseToken = require('../middleware/verifyFirebaseToken');
+const adminController = require('../controllers/adminController');
+
 
 // Only allow admins
 function requireAdmin(req, res, next) {
@@ -21,5 +23,7 @@ router.get('/campaigns', verifyFirebaseToken, requireAdmin, adminCampaignControl
 router.patch('/campaigns/:id/status', verifyFirebaseToken, requireAdmin, adminCampaignController.updateCampaignStatus);
 router.delete('/campaigns/:id', verifyFirebaseToken, requireAdmin, adminCampaignController.deleteCampaign);
 router.get('/campaigns/:id', verifyFirebaseToken, requireAdmin, adminCampaignController.getCampaignDetails);
+router.get('/transactions', verifyFirebaseToken, requireAdmin, adminController.getAllTransactions);
+
 
 module.exports = router; 

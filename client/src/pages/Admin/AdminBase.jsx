@@ -27,6 +27,7 @@ import {
   People as PeopleIcon,
   DoneAll as DoneAllIcon
 } from '@mui/icons-material';
+import PaidIcon from '@mui/icons-material/Paid';
 import { useTheme } from '@mui/material/styles';
 import { useThemeMode } from '../../context/ThemeContext';
 
@@ -34,10 +35,9 @@ const drawerWidth = 240;
 
 const adminMenu = [
   { label: 'Dashboard', icon: <DashboardIcon />, path: '/admin' },
-  { label: 'Home', icon: <HomeIcon />, path: '/admin/home' },
-  { label: 'Settings', icon: <SettingsIcon />, path: '/admin/settings' },
   { label: 'Manage Users', icon: <PeopleIcon />, path: '/admin/manage-users' },
   { label: 'Manage Campaigns', icon: <DoneAllIcon />, path: '/admin/manage-campaigns' },
+  { label: 'Manage Transactions', icon: <PaidIcon />, path: '/admin/manage-transactions' }
 ];
 
 function getUserFromJWT() {
