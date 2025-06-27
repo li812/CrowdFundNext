@@ -126,6 +126,7 @@ function AdminManageTransactions() {
                   <TableRow>
                     <TableCell>User</TableCell>
                     <TableCell>Campaign</TableCell>
+                    <TableCell>Campaign ID</TableCell>
                     <TableCell>Amount</TableCell>
                     <TableCell>Date</TableCell>
                   </TableRow>
@@ -133,7 +134,7 @@ function AdminManageTransactions() {
                 <TableBody>
                   {filteredTransactions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} align="center">
+                      <TableCell colSpan={5} align="center">
                         <Typography color="text.secondary">No transactions found.</Typography>
                       </TableCell>
                     </TableRow>
@@ -150,6 +151,7 @@ function AdminManageTransactions() {
                           </Stack>
                         </TableCell>
                         <TableCell>{tx.campaignId ? tx.campaignId.title : 'Unknown'}</TableCell>
+                        <TableCell>{tx.campaignId ? tx.campaignId._id || tx.campaignId : 'Unknown'}</TableCell>
                         <TableCell>${tx.amount}</TableCell>
                         <TableCell>{new Date(tx.createdAt).toLocaleString()}</TableCell>
                       </TableRow>

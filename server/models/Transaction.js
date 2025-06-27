@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const transactionSchema = new mongoose.Schema({
   userId: {
     type: String,
-    ref: 'Users',
+    ref: 'User',
     required: true
   },
   campaignId: {
