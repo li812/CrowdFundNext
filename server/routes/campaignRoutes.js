@@ -62,4 +62,7 @@ router.post('/:id/comments', verifyFirebaseToken, addComment);
 // Get all comments
 router.get('/:id/comments', verifyFirebaseToken, getComments);
 
+// Donation route
+router.post('/donate', verifyFirebaseToken, donateToCampaign);
+
 module.exports = router;

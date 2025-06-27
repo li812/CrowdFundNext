@@ -3,6 +3,7 @@ import {
   Card, CardContent, CardMedia, Typography, Box, Button, Chip, Stack, LinearProgress, IconButton, Tooltip, Link as MuiLink, Dialog, DialogTitle, DialogContent, DialogActions, TextField, CircularProgress
 } from '@mui/material';
 import { Edit, Delete, AttachMoney, Info, ArrowBackIos, ArrowForwardIos, PictureAsPdf, Link as LinkIcon, Lock, Share, FavoriteBorder, Favorite, ChatBubbleOutline } from '@mui/icons-material';
+import DonationAmountModal from './DonationAmountModal';
 
 function CampaignCard({
   campaign,
@@ -50,6 +51,7 @@ function CampaignCard({
   const [commentText, setCommentText] = useState('');
   const [commentLoading, setCommentLoading] = useState(false);
   const [commentError, setCommentError] = useState('');
+  const [amountModalOpen, setAmountModalOpen] = useState(false);
 
   // Check if current user liked this campaign
   useEffect(() => {
@@ -124,6 +126,35 @@ function CampaignCard({
       setCommentError('Failed to add comment');
     } finally {
       setCommentLoading(false);
+    }
+  };
+
+  const handleDonateClick = () => {
+    setAmountModalOpen(true);
+  };
+  const handleAmountSuccess = async (amount) => {
+    try {
+      const token = localStorage.getItem('jwt');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/campaigns/donate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ campaignId: campaign._id, amount })
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Update campaign amountReceived in UI
+        if (data.campaign) {
+          campaign.amountReceived = data.campaign.amountReceived;
+        }
+        alert(`Thank you for donating $${amount}!`);
+      } else {
+        alert(data.error || 'Failed to record donation.');
+      }
+    } catch (err) {
+      alert('Failed to record donation.');
     }
   };
 
@@ -231,7 +262,7 @@ function CampaignCard({
                 variant="contained"
                 color="success"
                 startIcon={<AttachMoney />}
-                onClick={onDonate}
+                onClick={handleDonateClick}
                 size="small"
               >
                 Donate
@@ -261,6 +292,7 @@ function CampaignCard({
           </Stack>
         </Box>
       </CardContent>
+
       {/* Comment Modal */}
       <Dialog open={commentModalOpen} onClose={closeCommentModal} maxWidth="sm" fullWidth>
         <DialogTitle>Comments</DialogTitle>
@@ -274,7 +306,7 @@ function CampaignCard({
           ) : (
             <Stack spacing={2}>
               {comments.map((c, idx) => (
-                <Box key={idx} sx={{ bgcolor: 'background.paper', p: 1.5, borderRadius: 2, boxShadow: 1 }}>
+                <Box key={idx} sx={{ bgcolor: 'background.paper', p: 1.5, borderRadius: 1, boxShadow: 1 }}>
                   <Typography variant="subtitle2" color="primary.main">{c.userName || 'User'}</Typography>
                   <Typography variant="body2" sx={{ mb: 0.5 }}>{c.text}</Typography>
                   <Typography variant="caption" color="text.secondary">{new Date(c.createdAt).toLocaleString()}</Typography>
@@ -302,6 +334,13 @@ function CampaignCard({
           <Button onClick={closeCommentModal} color="secondary">Close</Button>
         </DialogActions>
       </Dialog>
+      <DonationAmountModal
+        open={amountModalOpen}
+        onClose={() => setAmountModalOpen(false)}
+        maxAmount={campaign.amountNeeded - campaign.amountReceived}
+        campaign={campaign}
+        onSuccess={handleAmountSuccess}
+      />
     </Card>
   );
 }

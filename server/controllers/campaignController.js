@@ -1,5 +1,6 @@
 const Campaign = require('../models/Campaign');
 const User = require('../models/Users');
+const Transaction = require('../models/Transaction');
 
 // Create campaign (user)
 async function createCampaign(req, res) {
@@ -64,18 +65,30 @@ async function rejectCampaign(req, res) {
   res.json({ success: true, campaign });
 }
 
-// Donate to campaign (user)
+// Handle donation: create transaction and update campaign
 async function donateToCampaign(req, res) {
-  const { amount } = req.body;
-  const campaign = await Campaign.findById(req.params.id);
-  if (!campaign) return res.status(404).json({ error: 'Not found' });
-  if (campaign.status !== 'approved') return res.status(400).json({ error: 'Campaign not approved' });
-  if (campaign.amountReceived + Number(amount) > campaign.amountNeeded)
-    return res.status(400).json({ error: 'Donation exceeds goal' });
-
-  campaign.amountReceived += Number(amount);
-  await campaign.save();
-  res.json({ success: true, campaign });
+  try {
+    const { campaignId, amount } = req.body;
+    const userId = req.user.uid;
+    if (!campaignId || !amount || amount <= 0) {
+      return res.status(400).json({ success: false, error: 'Invalid donation data.' });
+    }
+    // Create transaction
+    const transaction = await Transaction.create({
+      userId,
+      campaignId,
+      amount
+    });
+    // Update campaign amountReceived
+    const campaign = await Campaign.findByIdAndUpdate(
+      campaignId,
+      { $inc: { amountReceived: amount } },
+      { new: true }
+    );
+    res.json({ success: true, transaction, campaign });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 }
 
 // Delete campaign (user)
