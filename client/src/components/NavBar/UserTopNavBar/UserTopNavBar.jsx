@@ -42,8 +42,7 @@ const glassNavStyle = (theme) => ({
 });
 
 const navLinks = [
-  { label: 'Home', path: '/user', icon: <HomeIcon /> },
-  { label: 'Explore', path: '/explore', icon: <ExploreIcon /> }
+  { label: 'Home', path: '/user', icon: <HomeIcon /> }
 ];
 
 const campaignLinks = [
@@ -139,24 +138,7 @@ const UserTopNavBar = () => {
             })}
           </Box>
 
-          {/* Search Bar */}
-          <Box sx={{
-            flexGrow: 1,
-            maxWidth: 320,
-            display: { xs: 'none', md: 'flex' },
-            alignItems: 'center',
-            bgcolor: theme.palette.mode === 'dark' ? 'rgba(26,34,63,0.65)' : 'rgba(255,255,255,0.65)',
-            borderRadius: 2,
-            px: 2,
-            mr: 3,
-            boxShadow: '0 2px 8px 0 #3a86ff11'
-          }}>
-            <Search sx={{ color: theme.palette.primary.main, mr: 1 }} />
-            <InputBase
-              placeholder="Search campaigns, people..."
-              sx={{ flex: 1, color: theme.palette.text.primary, fontWeight: 500 }}
-            />
-          </Box>
+
 
           {/* Campaign Buttons (right of search, left of name/avatar) */}
           <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 2, alignItems: 'center', mr: 2 }}>

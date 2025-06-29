@@ -8,7 +8,13 @@ const ProfileForm = () => {
   const [profile, setProfile] = useState(user);
   const [editProfile, setEditProfile] = useState(false);
   const [profilePic, setProfilePic] = useState(null);
-  const [profilePicPreview, setProfilePicPreview] = useState(user?.profilePicture || '');
+  const apiUrl = import.meta.env.VITE_API_URL || '';
+  const getProfilePicUrl = (pic) => {
+    if (!pic) return '';
+    if (pic.startsWith('http')) return pic;
+    return `${apiUrl}${pic}`;
+  };
+  const [profilePicPreview, setProfilePicPreview] = useState(getProfilePicUrl(user?.profilePicture));
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState('');
   const [profileSuccess, setProfileSuccess] = useState('');
@@ -29,7 +35,7 @@ const ProfileForm = () => {
     setEditProfile(false);
     setProfile(user);
     setProfilePic(null);
-    setProfilePicPreview(user?.profilePicture || '');
+    setProfilePicPreview(getProfilePicUrl(user?.profilePicture));
     setProfileError('');
     setProfileSuccess('');
   };
@@ -53,7 +59,7 @@ const ProfileForm = () => {
       setProfileSuccess('Profile updated successfully.');
       setEditProfile(false);
       setProfilePic(null);
-      setProfilePicPreview(data.user.profilePicture || '');
+      setProfilePicPreview(getProfilePicUrl(data.user.profilePicture));
       setProfile(data.user);
       window.location.reload();
     } catch (err) {

@@ -312,7 +312,7 @@ function CampaignCard({
       maxWidth: 350,
       minWidth: 350,
       width: '100%',
-      maxHeight: 635,
+      maxHeight: 695,
       minHeight: 635,
       display: 'flex',
       flexDirection: 'column',
