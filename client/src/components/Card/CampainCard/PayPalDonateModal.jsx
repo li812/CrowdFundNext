@@ -10,7 +10,12 @@ function PayPalDonateModal({ open, onClose, amount, campaign }) {
       <DialogTitle>Donate to {campaign?.title || 'Campaign'}</DialogTitle>
       <DialogContent>
         <Typography gutterBottom>Enter your PayPal details to donate <b>${amount}</b> to this campaign.</Typography>
-        <PayPalScriptProvider options={{ 'client-id': clientId }}>
+        <PayPalScriptProvider options={{ 
+          'client-id': clientId,
+          'currency': 'USD',
+          'intent': 'capture',
+          'environment': 'sandbox'  // Force sandbox environment
+        }}>
           <PayPalButtons
             style={{ layout: 'vertical' }}
             createOrder={(data, actions) => {

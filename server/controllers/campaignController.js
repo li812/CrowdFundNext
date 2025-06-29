@@ -130,11 +130,18 @@ async function donateToCampaign(req, res) {
       amount
     });
     // Update campaign amountReceived
-    const campaign = await Campaign.findByIdAndUpdate(
+    await Campaign.findByIdAndUpdate(
       campaignId,
-      { $inc: { amountReceived: amount } },
-      { new: true }
+      { $inc: { amountReceived: amount } }
     );
+    // Fetch the updated campaign
+    const campaign = await Campaign.findById(campaignId);
+    // Check if fully funded and update status if needed
+    if (campaign.amountReceived >= campaign.amountNeeded && campaign.status === 'approved') {
+      campaign.status = 'funded';
+      campaign.fundedAt = new Date();
+    }
+    await campaign.save(); // This will trigger pre-save logic
     res.json({ success: true, transaction, campaign });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -461,8 +468,11 @@ async function updateExpiredCampaigns() {
     for (const campaign of expiredCampaigns) {
       if (campaign.progressPercentage >= 100) {
         campaign.status = 'completed';
+        campaign.completedAt = now;
       } else {
-        campaign.status = 'expired';
+        campaign.status = 'failed';
+        campaign.expiredAt = now;
+        campaign.isSuccessful = false;
       }
       campaign.isActive = false;
       campaign.daysRemaining = 0;
@@ -474,6 +484,267 @@ async function updateExpiredCampaigns() {
   } catch (err) {
     console.error('Error updating expired campaigns:', err);
     throw err;
+  }
+}
+
+// Enhanced campaign lifecycle management
+async function updateCampaignLifecycle() {
+  try {
+    console.log('Starting campaign lifecycle update...');
+    
+    // Use the static method from the model
+    const updatedCampaigns = await Campaign.updateAllCampaignStatuses();
+    
+    // Process each updated campaign for notifications
+    for (const campaign of updatedCampaigns) {
+      await processCampaignStatusChange(campaign);
+    }
+    
+    console.log(`Campaign lifecycle update completed. Updated ${updatedCampaigns.length} campaigns.`);
+    return updatedCampaigns;
+  } catch (error) {
+    console.error('Error in campaign lifecycle update:', error);
+    throw error;
+  }
+}
+
+// Process campaign status changes and send notifications
+async function processCampaignStatusChange(campaign) {
+  try {
+    const campaignSummary = campaign.getCampaignSummary();
+    
+    switch (campaign.status) {
+      case 'funded':
+        await handleCampaignFunded(campaign);
+        break;
+      case 'completed':
+        await handleCampaignCompleted(campaign);
+        break;
+      case 'failed':
+        await handleCampaignFailed(campaign);
+        break;
+      default:
+        console.log(`Campaign ${campaign._id} status changed to: ${campaign.status}`);
+    }
+    
+    return campaignSummary;
+  } catch (error) {
+    console.error(`Error processing status change for campaign ${campaign._id}:`, error);
+    throw error;
+  }
+}
+
+// Handle campaign reaching funding goal
+async function handleCampaignFunded(campaign) {
+  try {
+    console.log(`Campaign ${campaign._id} has been funded! Progress: ${campaign.progressPercentage}%`);
+    
+    // Add a system comment about funding success
+    const fundingComment = {
+      userId: 'system',
+      userName: 'CrowdFundNext',
+      text: `🎉 Congratulations! This campaign has reached its funding goal of $${campaign.amountNeeded}! The campaign is now funded and will be completed.`,
+      createdAt: new Date()
+    };
+    
+    campaign.comments.push(fundingComment);
+    await campaign.save();
+    
+    // TODO: Send notification to campaign creator
+    // TODO: Send notification to all donors
+    // TODO: Send email notifications
+    
+    return campaign;
+  } catch (error) {
+    console.error('Error handling funded campaign:', error);
+    throw error;
+  }
+}
+
+// Handle campaign completion
+async function handleCampaignCompleted(campaign) {
+  try {
+    console.log(`Campaign ${campaign._id} has been completed!`);
+    
+    // Add a system comment about completion
+    const completionComment = {
+      userId: 'system',
+      userName: 'CrowdFundNext',
+      text: `✅ Campaign completed successfully! Total raised: $${campaign.amountReceived} (${campaign.progressPercentage}% of goal). Thank you to all supporters!`,
+      createdAt: new Date()
+    };
+    
+    campaign.comments.push(completionComment);
+    await campaign.save();
+    
+    // TODO: Send completion notification to campaign creator
+    // TODO: Send completion notification to all donors
+    // TODO: Process fund distribution (if applicable)
+    // TODO: Send email notifications
+    
+    return campaign;
+  } catch (error) {
+    console.error('Error handling completed campaign:', error);
+    throw error;
+  }
+}
+
+// Handle campaign failure
+async function handleCampaignFailed(campaign) {
+  try {
+    console.log(`Campaign ${campaign._id} has failed. Progress: ${campaign.progressPercentage}%`);
+    
+    // Add a system comment about failure
+    const failureComment = {
+      userId: 'system',
+      userName: 'CrowdFundNext',
+      text: `❌ Campaign has ended without reaching the funding goal. Progress: ${campaign.progressPercentage}% ($${campaign.amountReceived}/${campaign.amountNeeded}).`,
+      createdAt: new Date()
+    };
+    
+    campaign.comments.push(failureComment);
+    await campaign.save();
+    
+    // TODO: Send failure notification to campaign creator
+    // TODO: Send failure notification to all donors
+    // TODO: Process refunds (if applicable)
+    // TODO: Send email notifications
+    
+    return campaign;
+  } catch (error) {
+    console.error('Error handling failed campaign:', error);
+    throw error;
+  }
+}
+
+// Get campaign statistics
+async function getCampaignStatistics(req, res) {
+  try {
+    const stats = await Campaign.aggregate([
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 },
+          totalAmount: { $sum: '$amountReceived' },
+          avgProgress: { $avg: '$progressPercentage' }
+        }
+      }
+    ]);
+    
+    // Get additional statistics
+    const totalCampaigns = await Campaign.countDocuments();
+    const activeCampaigns = await Campaign.countDocuments({ isActive: true, status: 'approved' });
+    const successfulCampaigns = await Campaign.countDocuments({ isSuccessful: true });
+    const totalRaised = await Campaign.aggregate([
+      { $group: { _id: null, total: { $sum: '$amountReceived' } } }
+    ]);
+    
+    const statistics = {
+      totalCampaigns,
+      activeCampaigns,
+      successfulCampaigns,
+      totalRaised: totalRaised[0]?.total || 0,
+      byStatus: stats.reduce((acc, stat) => {
+        acc[stat._id] = {
+          count: stat.count,
+          totalAmount: stat.totalAmount,
+          avgProgress: Math.round(stat.avgProgress * 100) / 100
+        };
+        return acc;
+      }, {})
+    };
+    
+    res.json({ success: true, statistics });
+  } catch (error) {
+    console.error('Error getting campaign statistics:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+// Get campaigns by status
+async function getCampaignsByStatus(req, res) {
+  try {
+    const { status, page = 1, limit = 10 } = req.query;
+    const skip = (Number(page) - 1) * Number(limit);
+    
+    const query = {};
+    if (status && status !== 'all') {
+      query.status = status;
+    }
+    
+    const campaigns = await Campaign.find(query)
+      .sort({ updatedAt: -1 })
+      .skip(skip)
+      .limit(Number(limit))
+      .populate('createdBy', 'firstName lastName email');
+    
+    const total = await Campaign.countDocuments(query);
+    
+    res.json({
+      success: true,
+      campaigns,
+      pagination: {
+        current: Number(page),
+        total: Math.ceil(total / Number(limit)),
+        hasNext: skip + campaigns.length < total,
+        hasPrev: Number(page) > 1
+      }
+    });
+  } catch (error) {
+    console.error('Error getting campaigns by status:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+// Manual campaign status update (admin only)
+async function updateCampaignStatus(req, res) {
+  try {
+    const { campaignId } = req.params;
+    const { status, adminComment } = req.body;
+    
+    const campaign = await Campaign.findById(campaignId);
+    if (!campaign) {
+      return res.status(404).json({ error: 'Campaign not found' });
+    }
+    
+    const oldStatus = campaign.status;
+    campaign.status = status;
+    
+    if (adminComment) {
+      campaign.adminComment = adminComment;
+    }
+    
+    // Update timestamps based on new status
+    const now = new Date();
+    switch (status) {
+      case 'completed':
+        campaign.completedAt = now;
+        campaign.isActive = false;
+        break;
+      case 'failed':
+        campaign.expiredAt = now;
+        campaign.isActive = false;
+        break;
+      case 'funded':
+        campaign.fundedAt = now;
+        break;
+    }
+    
+    await campaign.save();
+    
+    // Process status change if it's a lifecycle change
+    if (['funded', 'completed', 'failed'].includes(status)) {
+      await processCampaignStatusChange(campaign);
+    }
+    
+    res.json({
+      success: true,
+      campaign: campaign.getCampaignSummary(),
+      statusChanged: oldStatus !== status
+    });
+  } catch (error) {
+    console.error('Error updating campaign status:', error);
+    res.status(500).json({ error: error.message });
   }
 }
 
@@ -493,4 +764,8 @@ module.exports = {
   addComment,
   getComments,
   updateExpiredCampaigns,
+  updateCampaignLifecycle,
+  getCampaignStatistics,
+  getCampaignsByStatus,
+  updateCampaignStatus,
 };

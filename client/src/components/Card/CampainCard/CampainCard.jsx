@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Card, CardContent, CardMedia, Typography, Box, Button, Chip, Stack, LinearProgress, IconButton, Tooltip, Link as MuiLink, Dialog, DialogTitle, DialogContent, DialogActions, TextField, CircularProgress
 } from '@mui/material';
-import { Edit, Delete, AttachMoney, Info, ArrowBackIos, ArrowForwardIos, PictureAsPdf, Link as LinkIcon, Lock, Share, FavoriteBorder, Favorite, ChatBubbleOutline, AccessTime, Timer } from '@mui/icons-material';
+import { Edit, Delete, AttachMoney, Info, ArrowBackIos, ArrowForwardIos, PictureAsPdf, Link as LinkIcon, Lock, Share, FavoriteBorder, Favorite, ChatBubbleOutline, AccessTime, Timer, CheckCircle, Cancel, EmojiEvents, Warning } from '@mui/icons-material';
 import DonationAmountModal from './DonationAmountModal';
 
 function CampaignCard({
@@ -82,17 +82,37 @@ function CampaignCard({
     }
   }, [localCampaign.hasTimeLimit, localCampaign.endDate, localCampaign.createdAt, localCampaign.timeLimitType]);
 
-  // Status color
-  const statusColor =
-    localCampaign.status === 'approved' ? 'success' :
-      localCampaign.status === 'pending' ? 'warning' :
-        localCampaign.status === 'rejected' ? 'error' :
-          localCampaign.status === 'expired' ? 'error' :
-            localCampaign.status === 'completed' ? 'success' : 'default';
+  // Enhanced status handling
+  const getStatusInfo = () => {
+    switch (localCampaign.status) {
+      case 'pending':
+        return { color: 'warning', label: 'Pending', icon: <Timer />, description: 'Awaiting approval' };
+      case 'approved':
+        return { color: 'success', label: 'Active', icon: <Info />, description: 'Campaign is live' };
+      case 'rejected':
+        return { color: 'error', label: 'Rejected', icon: <Cancel />, description: 'Not approved' };
+      case 'funded':
+        return { color: 'success', label: 'Funded!', icon: <EmojiEvents />, description: 'Goal reached!' };
+      case 'completed':
+        return { color: 'success', label: 'Completed', icon: <CheckCircle />, description: 'Successfully completed' };
+      case 'failed':
+        return { color: 'error', label: 'Failed', icon: <Cancel />, description: 'Did not reach goal' };
+      case 'expired':
+        return { color: 'error', label: 'Expired', icon: <Warning />, description: 'Time limit reached' };
+      default:
+        return { color: 'default', label: localCampaign.status, icon: <Info />, description: '' };
+    }
+  };
+
+  const statusInfo = getStatusInfo();
 
   // Check if current user is the creator of this campaign
   const currentUserId = localStorage.getItem('userId');
   const isOwnCampaign = currentUserId && localCampaign.createdBy === currentUserId;
+
+  // Check if campaign is in a final state (no more donations)
+  const isFinalState = ['completed', 'failed', 'expired', 'rejected', 'funded'].includes(localCampaign.status);
+  const canDonate = localCampaign.status === 'approved' && !isExpired && !isOwnCampaign;
 
   // Carousel controls
   const handlePrev = (e) => {
@@ -203,50 +223,45 @@ function CampaignCard({
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ campaignId: localCampaign._id, amount })
+        body: JSON.stringify({
+          campaignId: localCampaign._id,
+          amount: amount
+        })
       });
       const data = await res.json();
       if (data.success) {
-        // Update local campaign state immediately
-        if (data.campaign) {
-          setLocalCampaign(prev => ({ ...prev, amountReceived: data.campaign.amountReceived }));
-        }
-        
-        // Call onDonate callback if provided to refresh parent data
+        // Update local campaign data
+        setLocalCampaign(prev => ({
+          ...prev,
+          amountReceived: prev.amountReceived + amount
+        }));
+        setAmountModalOpen(false);
+        // Call the parent's onDonate callback if provided
         if (onDonate) {
-          onDonate(data.campaign || { ...localCampaign, amountReceived: localCampaign.amountReceived + amount });
+          onDonate(amount);
         }
-        
-        alert(`Thank you for donating $${amount}!`);
-      } else {
-        alert(data.error || 'Failed to record donation.');
       }
-    } catch (err) {
-      alert('Failed to record donation.');
+    } catch (error) {
+      console.error('Donation error:', error);
     }
   };
 
-  // Format time remaining
   const formatTimeRemaining = (days) => {
-    if (days === 0) return 'Ended';
-    if (days === 1) return '1 day left';
+    if (days === 0) return 'Ended today';
+    if (days === 1) return 'Ends tomorrow';
     if (days < 7) return `${days} days left`;
     if (days < 30) return `${Math.ceil(days / 7)} weeks left`;
     return `${Math.ceil(days / 30)} months left`;
   };
 
-  // Get urgency color
   const getUrgencyColor = (days) => {
-    if (days === 0) return 'error';
     if (days <= 3) return 'error';
     if (days <= 7) return 'warning';
-    if (days <= 30) return 'info';
     return 'success';
   };
 
-  // Get time display color based on campaign type
   const getTimeDisplayColor = (days, hasTimeLimit) => {
-    if (!hasTimeLimit) return 'text.secondary'; // For campaigns without time limits
+    if (!hasTimeLimit) return 'text.secondary';
     return getUrgencyColor(days);
   };
 
@@ -264,7 +279,31 @@ function CampaignCard({
       borderRadius: 2,
       boxShadow: 3,
       overflow: 'hidden',
+      // Add visual indication for different states
+      border: localCampaign.status === 'funded' ? '2px solid #4caf50' : 
+              localCampaign.status === 'completed' ? '2px solid #2196f3' :
+              localCampaign.status === 'failed' ? '2px solid #f44336' : 'none'
     }}>
+      {/* Status overlay for funded/completed campaigns */}
+      {(localCampaign.status === 'funded' || localCampaign.status === 'completed') && (
+        <Box sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bgcolor: localCampaign.status === 'funded' ? 'success.main' : 'primary.main',
+          color: 'white',
+          py: 0.5,
+          px: 1,
+          textAlign: 'center',
+          zIndex: 2,
+          fontSize: '0.75rem',
+          fontWeight: 'bold'
+        }}>
+          {localCampaign.status === 'funded' ? '🎉 FUNDED!' : '✅ COMPLETED!'}
+        </Box>
+      )}
+
       <Box sx={{ position: 'relative', cursor: 'pointer', height: 280, minHeight: 280, maxHeight: 280, overflow: 'hidden' }} onClick={onViewDetails}>
         <CardMedia
           component="img"
@@ -311,9 +350,13 @@ function CampaignCard({
         <Box sx={{ flexGrow: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
           <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
             <Chip label={localCampaign.type} color="primary" size="small" />
-            {mode === 'mine' && (
-              <Chip label={localCampaign.status} color={statusColor} size="small" />
-            )}
+            <Chip 
+              label={statusInfo.label} 
+              color={statusInfo.color} 
+              size="small"
+              icon={statusInfo.icon}
+              sx={{ fontWeight: 'bold' }}
+            />
           </Stack>
           <Typography variant="h6" fontWeight={700} gutterBottom noWrap>{localCampaign.title}</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }} >
@@ -357,7 +400,30 @@ function CampaignCard({
             <Typography variant="caption" color="text.secondary">
               ${localCampaign.amountReceived} raised of ${localCampaign.amountNeeded} goal ({progress}%)
             </Typography>
+            {/* Show overfunding message */}
+            {progress > 100 && (
+              <Typography variant="caption" color="success.main" sx={{ display: 'block', fontWeight: 'bold' }}>
+                🎉 Overfunded by ${localCampaign.amountReceived - localCampaign.amountNeeded}!
+              </Typography>
+            )}
           </Box>
+
+          {/* Status-specific messages */}
+          {localCampaign.status === 'funded' && (
+            <Typography variant="caption" color="success.main" sx={{ mb: 1, display: 'block', fontWeight: 'bold' }}>
+              🎉 Funding goal reached! Campaign will be completed.
+            </Typography>
+          )}
+          {localCampaign.status === 'completed' && (
+            <Typography variant="caption" color="primary.main" sx={{ mb: 1, display: 'block', fontWeight: 'bold' }}>
+              ✅ Campaign completed successfully!
+            </Typography>
+          )}
+          {localCampaign.status === 'failed' && (
+            <Typography variant="caption" color="error.main" sx={{ mb: 1, display: 'block', fontWeight: 'bold' }}>
+              ❌ Campaign did not reach its funding goal.
+            </Typography>
+          )}
 
           {mode === 'mine' && localCampaign.status === 'rejected' && localCampaign.adminComment && (
             <Typography variant="caption" color="error" sx={{ mb: 1, display: 'block' }}>
@@ -377,7 +443,7 @@ function CampaignCard({
                 </Tooltip>
               </>
             )}
-            {mode === 'other' && localCampaign.status === 'approved' && !isOwnCampaign && !isExpired && (
+            {canDonate && (
               <Button
                 variant="contained"
                 color="success"
@@ -386,6 +452,17 @@ function CampaignCard({
                 size="small"
               >
                 Donate
+              </Button>
+            )}
+            {isFinalState && (
+              <Button
+                variant="outlined"
+                color={localCampaign.status === 'completed' ? 'success' : 'error'}
+                startIcon={localCampaign.status === 'completed' ? <CheckCircle /> : <Cancel />}
+                size="small"
+                disabled
+              >
+                {localCampaign.status === 'completed' ? 'Completed' : 'Ended'}
               </Button>
             )}
             <Button
@@ -449,54 +526,63 @@ function CampaignCard({
         </Box>
       </CardContent>
 
-      {/* Comment Modal */}
-      <Dialog open={commentModalOpen} onClose={closeCommentModal} maxWidth="sm" fullWidth>
-        <DialogTitle>Comments</DialogTitle>
-        <DialogContent dividers sx={{ minHeight: 200, maxHeight: 400, overflowY: 'auto' }}>
-          {commentLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}><CircularProgress size={24} /></Box>
-          ) : commentError ? (
-            <Typography color="error">{commentError}</Typography>
-          ) : comments.length === 0 ? (
-            <Typography color="text.secondary">No comments yet. Be the first to comment!</Typography>
-          ) : (
-            <Stack spacing={2}>
-              {comments.map((c, idx) => (
-                <Box key={idx} sx={{ bgcolor: 'background.paper', p: 1.5, borderRadius: 1, boxShadow: 1 }}>
-                  <Typography variant="subtitle2" color="primary.main">{c.userName || 'User'}</Typography>
-                  <Typography variant="body2" sx={{ mb: 0.5 }}>{c.text}</Typography>
-                  <Typography variant="caption" color="text.secondary">{new Date(c.createdAt).toLocaleString()}</Typography>
-                </Box>
-              ))}
-            </Stack>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ flexDirection: 'column', alignItems: 'stretch', gap: 1, p: 2 }}>
-          <TextField
-            label="Add a comment"
-            value={commentText}
-            onChange={e => setCommentText(e.target.value)}
-            fullWidth
-            multiline
-            minRows={1}
-            maxRows={4}
-            disabled={commentLoading}
-            error={!!commentError}
-            helperText={commentError}
-          />
-          <Button onClick={handleAddComment} variant="contained" disabled={commentLoading || !commentText.trim()}>
-            Post
-          </Button>
-          <Button onClick={closeCommentModal} color="secondary">Close</Button>
-        </DialogActions>
-      </Dialog>
+      {/* Donation Modal */}
       <DonationAmountModal
         open={amountModalOpen}
         onClose={() => setAmountModalOpen(false)}
-        maxAmount={localCampaign.amountNeeded - localCampaign.amountReceived}
-        campaign={localCampaign}
         onSuccess={handleAmountSuccess}
+        campaign={localCampaign}
       />
+
+      {/* Comment Modal */}
+      <Dialog open={commentModalOpen} onClose={closeCommentModal} maxWidth="sm" fullWidth>
+        <DialogTitle>Comments</DialogTitle>
+        <DialogContent>
+          {commentLoading ? (
+            <Box display="flex" justifyContent="center" p={2}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <Box>
+              {comments.map((comment, idx) => (
+                <Box key={idx} sx={{ mb: 2, p: 1, bgcolor: 'grey.50', borderRadius: 1 }}>
+                  <Typography variant="subtitle2" fontWeight="bold">
+                    {comment.userName}
+                  </Typography>
+                  <Typography variant="body2">{comment.text}</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {new Date(comment.createdAt).toLocaleDateString()}
+                  </Typography>
+                </Box>
+              ))}
+              {comments.length === 0 && (
+                <Typography color="text.secondary" textAlign="center" py={2}>
+                  No comments yet. Be the first to comment!
+                </Typography>
+              )}
+            </Box>
+          )}
+          {commentError && (
+            <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+              {commentError}
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <TextField
+            fullWidth
+            placeholder="Add a comment..."
+            value={commentText}
+            onChange={(e) => setCommentText(e.target.value)}
+            disabled={commentLoading}
+            onKeyPress={(e) => e.key === 'Enter' && handleAddComment()}
+          />
+          <Button onClick={handleAddComment} disabled={!commentText.trim() || commentLoading}>
+            Post
+          </Button>
+          <Button onClick={closeCommentModal}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </Card>
   );
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Box, Typography, Grid, CircularProgress, Alert, Divider, MenuItem, Select, FormControl, InputLabel, Stack, Button, Chip } from '@mui/material';
-import { Refresh, Clear } from '@mui/icons-material';
+import { Refresh, Clear, CheckCircle, Cancel, Warning, EmojiEvents } from '@mui/icons-material';
 import CampaignCard from '../../components/Card/CampainCard/CampainCard';
 import CampaignDetailsModal from '../../components/Card/CampainCard/CampaignDetailsModal';
 // Optionally import country-state-city for real data
@@ -243,6 +243,12 @@ function UserHome() {
   // Check if any filters are active
   const hasActiveFilters = type || country || state || city || sort !== 'new';
 
+  // Group campaigns by status
+  const activeCampaigns = campaigns.filter(c => c.status === 'approved');
+  const fundedCampaigns = campaigns.filter(c => c.status === 'funded');
+  const completedCampaigns = campaigns.filter(c => c.status === 'completed');
+  const expiredCampaigns = campaigns.filter(c => c.status === 'expired' || c.status === 'failed');
+
   return (
     <Box sx={{ p: { xs: 1, md: 3 }, maxWidth: 1700, mx: 'auto' }}>
       {/* Filters */}
@@ -340,26 +346,14 @@ function UserHome() {
         </Box>
       )}
 
-      {/* New & Noteworthy Campaigns */}
-      <Typography variant="h4" fontWeight={900} sx={{ mb: 2 }}>
-        {sort === 'urgent' ? 'Urgent Campaigns' : 
-         sort === 'ending' ? 'Ending Soon' : 
-         sort === 'popular' ? 'Popular Campaigns' : 
-         'New & Noteworthy Campaigns'}
-      </Typography>
-      
-      {loading && page === 1 ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-          <CircularProgress />
-        </Box>
-      ) : campaigns.length === 0 ? (
-        <Typography variant="body1" color="text.secondary">
-          No campaigns found.
-        </Typography>
-      ) : (
+      {/* Active Campaigns Section */}
+      {activeCampaigns.length > 0 && (
         <>
+          <Typography variant="h4" fontWeight={900} sx={{ mb: 2 }}>
+            Active Campaigns
+          </Typography>
           <Grid container spacing={2} sx={{ mb: 4 }}>
-            {campaigns.map((campaign) => (
+            {activeCampaigns.map((campaign) => (
               <Grid item xs={12} sm={6} md={4} key={campaign._id}>
                 <CampaignCard
                   campaign={campaign}
@@ -370,21 +364,91 @@ function UserHome() {
               </Grid>
             ))}
           </Grid>
-          
-          {/* Load More Button */}
-          {hasMore && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-              <Button
-                variant="outlined"
-                onClick={loadMore}
-                disabled={loading}
-                startIcon={loading ? <CircularProgress size={16} /> : null}
-              >
-                {loading ? 'Loading...' : 'Load More Campaigns'}
-              </Button>
-            </Box>
-          )}
         </>
+      )}
+
+      {/* Funded Campaigns Section */}
+      {fundedCampaigns.length > 0 && (
+        <>
+          <Typography variant="h4" fontWeight={900} sx={{ mb: 2, color: 'success.main', display: 'flex', alignItems: 'center', gap: 1 }}>
+            <EmojiEvents color="success" sx={{ mr: 1 }} /> Funded Campaigns
+          </Typography>
+          <Grid container spacing={2} sx={{ mb: 4 }}>
+            {fundedCampaigns.map((campaign) => (
+              <Grid item xs={12} sm={6} md={4} key={campaign._id}>
+                <CampaignCard
+                  campaign={campaign}
+                  mode="other"
+                  onViewDetails={() => handleViewDetails(campaign)}
+                  onDonate={handleDonate}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        </>
+      )}
+
+      {/* Completed Campaigns Section */}
+      {completedCampaigns.length > 0 && (
+        <>
+          <Typography variant="h4" fontWeight={900} sx={{ mb: 2, color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
+            <CheckCircle color="primary" sx={{ mr: 1 }} /> Completed Campaigns
+          </Typography>
+          <Grid container spacing={2} sx={{ mb: 4 }}>
+            {completedCampaigns.map((campaign) => (
+              <Grid item xs={12} sm={6} md={4} key={campaign._id}>
+                <CampaignCard
+                  campaign={campaign}
+                  mode="other"
+                  onViewDetails={() => handleViewDetails(campaign)}
+                  onDonate={handleDonate}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        </>
+      )}
+
+      {/* Expired/Failed Campaigns Section */}
+      {expiredCampaigns.length > 0 && (
+        <>
+          <Typography variant="h4" fontWeight={900} sx={{ mb: 2, color: 'error.main', display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Warning color="error" sx={{ mr: 1 }} /> Expired & Failed Campaigns
+          </Typography>
+          <Grid container spacing={2} sx={{ mb: 4 }}>
+            {expiredCampaigns.map((campaign) => (
+              <Grid item xs={12} sm={6} md={4} key={campaign._id}>
+                <CampaignCard
+                  campaign={campaign}
+                  mode="other"
+                  onViewDetails={() => handleViewDetails(campaign)}
+                  onDonate={handleDonate}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        </>
+      )}
+
+      {/* No campaigns found message */}
+      {!loading && campaigns.length === 0 && (
+        <Typography variant="body1" color="text.secondary">
+          No campaigns found.
+        </Typography>
+      )}
+
+      {/* Load More Button (only for active campaigns) */}
+      {hasMore && activeCampaigns.length > 0 && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+          <Button
+            variant="outlined"
+            onClick={loadMore}
+            disabled={loading}
+            startIcon={loading ? <CircularProgress size={16} /> : null}
+          >
+            {loading ? 'Loading...' : 'Load More Campaigns'}
+          </Button>
+        </Box>
       )}
 
       <CampaignDetailsModal

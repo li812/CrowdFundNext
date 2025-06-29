@@ -4,7 +4,8 @@ const verifyFirebaseToken = require('../middleware/verifyFirebaseToken');
 const {
   createCampaign, getMyCampaigns, getPendingCampaigns,
   approveCampaign, rejectCampaign, donateToCampaign, deleteCampaign, updateCampaign, getAllCampaigns,
-  likeCampaign, addComment, getComments
+  likeCampaign, addComment, getComments, updateCampaignLifecycle, getCampaignStatistics,
+  getCampaignsByStatus, updateCampaignStatus
 } = require('../controllers/campaignController');
 
 const router = express.Router();
@@ -64,5 +65,17 @@ router.get('/:id/comments', verifyFirebaseToken, getComments);
 
 // Donation route
 router.post('/donate', verifyFirebaseToken, donateToCampaign);
+
+// Campaign lifecycle management routes
+router.post('/lifecycle/update', verifyFirebaseToken, updateCampaignLifecycle);
+
+// Campaign statistics
+router.get('/statistics', verifyFirebaseToken, getCampaignStatistics);
+
+// Get campaigns by status
+router.get('/status/:status', verifyFirebaseToken, getCampaignsByStatus);
+
+// Update campaign status (admin only)
+router.patch('/:campaignId/status', verifyFirebaseToken, updateCampaignStatus);
 
 module.exports = router;
