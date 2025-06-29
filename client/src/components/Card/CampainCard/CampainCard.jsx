@@ -601,7 +601,7 @@ function CampaignCard({
           ) : (
             <Box>
               {comments.map((comment, idx) => (
-                <Box key={idx} sx={{ mb: 2, p: 1, bgcolor: 'grey.50', borderRadius: 1 }}>
+                <Box key={idx} sx={{ mb: 2, p: 1, borderRadius: 1 }}>
                   <Typography variant="subtitle2" fontWeight="bold">
                     {comment.userName}
                   </Typography>
