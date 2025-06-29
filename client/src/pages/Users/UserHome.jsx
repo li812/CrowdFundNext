@@ -231,6 +231,15 @@ function UserHome() {
     setSelectedCampaign(null);
   };
 
+  // Handle donation success - update the campaign in the list
+  const handleDonate = (updatedCampaign) => {
+    setCampaigns(prevCampaigns => 
+      prevCampaigns.map(campaign => 
+        campaign._id === updatedCampaign._id ? updatedCampaign : campaign
+      )
+    );
+  };
+
   // Check if any filters are active
   const hasActiveFilters = type || country || state || city || sort !== 'new';
 
@@ -356,6 +365,7 @@ function UserHome() {
                   campaign={campaign}
                   mode="other"
                   onViewDetails={() => handleViewDetails(campaign)}
+                  onDonate={handleDonate}
                 />
               </Grid>
             ))}

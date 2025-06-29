@@ -20,10 +20,18 @@ function CampaignCard({
     ? (photos[imgIdx].startsWith('http') ? photos[imgIdx] : `${import.meta.env.VITE_API_URL}${photos[imgIdx]}`)
     : 'https://via.placeholder.com/400x200?text=No+Image';
 
-  // Progress calculation
+  // Local state for campaign data to handle real-time updates
+  const [localCampaign, setLocalCampaign] = useState(campaign);
+
+  // Update local campaign when prop changes
+  useEffect(() => {
+    setLocalCampaign(campaign);
+  }, [campaign]);
+
+  // Progress calculation using local state
   const progress = Math.min(
     100,
-    Math.round((campaign.amountReceived / campaign.amountNeeded) * 100)
+    Math.round((localCampaign.amountReceived / localCampaign.amountNeeded) * 100)
   );
 
   // Time period calculations
@@ -33,16 +41,16 @@ function CampaignCard({
 
   useEffect(() => {
     console.log('Campaign time data:', {
-      hasTimeLimit: campaign.hasTimeLimit,
-      endDate: campaign.endDate,
-      createdAt: campaign.createdAt,
-      timeLimitType: campaign.timeLimitType
+      hasTimeLimit: localCampaign.hasTimeLimit,
+      endDate: localCampaign.endDate,
+      createdAt: localCampaign.createdAt,
+      timeLimitType: localCampaign.timeLimitType
     });
 
-    if (campaign.hasTimeLimit && campaign.endDate) {
+    if (localCampaign.hasTimeLimit && localCampaign.endDate) {
       const updateTime = () => {
         const now = new Date();
-        const end = new Date(campaign.endDate);
+        const end = new Date(localCampaign.endDate);
         const diff = end - now;
         
         if (diff <= 0) {
@@ -54,7 +62,7 @@ function CampaignCard({
         }
 
         // Calculate time progress
-        const start = new Date(campaign.createdAt);
+        const start = new Date(localCampaign.createdAt);
         const total = end - start;
         const elapsed = now - start;
         setTimeProgress(Math.min(100, Math.max(0, (elapsed / total) * 100)));
@@ -66,25 +74,25 @@ function CampaignCard({
     } else {
       // For campaigns without explicit time limits, show days since creation
       const now = new Date();
-      const created = new Date(campaign.createdAt);
+      const created = new Date(localCampaign.createdAt);
       const daysSinceCreation = Math.ceil((now - created) / (1000 * 60 * 60 * 24));
       setTimeRemaining(daysSinceCreation);
       setTimeProgress(null);
       setIsExpired(false);
     }
-  }, [campaign.hasTimeLimit, campaign.endDate, campaign.createdAt, campaign.timeLimitType]);
+  }, [localCampaign.hasTimeLimit, localCampaign.endDate, localCampaign.createdAt, localCampaign.timeLimitType]);
 
   // Status color
   const statusColor =
-    campaign.status === 'approved' ? 'success' :
-      campaign.status === 'pending' ? 'warning' :
-        campaign.status === 'rejected' ? 'error' :
-          campaign.status === 'expired' ? 'error' :
-            campaign.status === 'completed' ? 'success' : 'default';
+    localCampaign.status === 'approved' ? 'success' :
+      localCampaign.status === 'pending' ? 'warning' :
+        localCampaign.status === 'rejected' ? 'error' :
+          localCampaign.status === 'expired' ? 'error' :
+            localCampaign.status === 'completed' ? 'success' : 'default';
 
   // Check if current user is the creator of this campaign
   const currentUserId = localStorage.getItem('userId');
-  const isOwnCampaign = currentUserId && campaign.createdBy === currentUserId;
+  const isOwnCampaign = currentUserId && localCampaign.createdBy === currentUserId;
 
   // Carousel controls
   const handlePrev = (e) => {
@@ -110,19 +118,19 @@ function CampaignCard({
   // Check if current user liked this campaign
   useEffect(() => {
     const userId = localStorage.getItem('userId');
-    if (campaign.likes && userId) {
-      setLiked(campaign.likes.includes(userId));
+    if (localCampaign.likes && userId) {
+      setLiked(localCampaign.likes.includes(userId));
     }
-    setLikeCount(campaign.likes ? campaign.likes.length : 0);
-    setCommentCount(campaign.comments ? campaign.comments.length : 0);
-  }, [campaign.likes, campaign.comments]);
+    setLikeCount(localCampaign.likes ? localCampaign.likes.length : 0);
+    setCommentCount(localCampaign.comments ? localCampaign.comments.length : 0);
+  }, [localCampaign.likes, localCampaign.comments]);
 
   // Like/unlike handler
   const handleLike = async (e) => {
     e.stopPropagation();
     const token = localStorage.getItem('jwt');
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/campaigns/${campaign._id}/like`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/campaigns/${localCampaign._id}/like`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -142,7 +150,7 @@ function CampaignCard({
     setCommentError('');
     const token = localStorage.getItem('jwt');
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/campaigns/${campaign._id}/comments`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/campaigns/${localCampaign._id}/comments`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -160,7 +168,7 @@ function CampaignCard({
     setCommentError('');
     const token = localStorage.getItem('jwt');
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/campaigns/${campaign._id}/comments`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/campaigns/${localCampaign._id}/comments`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -195,14 +203,20 @@ function CampaignCard({
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ campaignId: campaign._id, amount })
+        body: JSON.stringify({ campaignId: localCampaign._id, amount })
       });
       const data = await res.json();
       if (data.success) {
-        // Update campaign amountReceived in UI
+        // Update local campaign state immediately
         if (data.campaign) {
-          campaign.amountReceived = data.campaign.amountReceived;
+          setLocalCampaign(prev => ({ ...prev, amountReceived: data.campaign.amountReceived }));
         }
+        
+        // Call onDonate callback if provided to refresh parent data
+        if (onDonate) {
+          onDonate(data.campaign || { ...localCampaign, amountReceived: localCampaign.amountReceived + amount });
+        }
+        
         alert(`Thank you for donating $${amount}!`);
       } else {
         alert(data.error || 'Failed to record donation.');
@@ -241,8 +255,8 @@ function CampaignCard({
       maxWidth: 350,
       minWidth: 350,
       width: '100%',
-      maxHeight: 600,
-      minHeight: 600,
+      maxHeight: 635,
+      minHeight: 635,
       display: 'flex',
       flexDirection: 'column',
       m: 2,
@@ -256,7 +270,7 @@ function CampaignCard({
           component="img"
           height="180"
           image={photoUrl}
-          alt={campaign.title}
+          alt={localCampaign.title}
           sx={{ objectFit: 'cover', width: '100%', height: '100%' }}
         />
         {/* Carousel controls */}
@@ -296,37 +310,37 @@ function CampaignCard({
       <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', p: 2, height: '100%' }}>
         <Box sx={{ flexGrow: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
           <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-            <Chip label={campaign.type} color="primary" size="small" />
+            <Chip label={localCampaign.type} color="primary" size="small" />
             {mode === 'mine' && (
-              <Chip label={campaign.status} color={statusColor} size="small" />
+              <Chip label={localCampaign.status} color={statusColor} size="small" />
             )}
           </Stack>
-          <Typography variant="h6" fontWeight={700} gutterBottom noWrap>{campaign.title}</Typography>
+          <Typography variant="h6" fontWeight={700} gutterBottom noWrap>{localCampaign.title}</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }} >
-            {campaign.description}
+            {localCampaign.description}
           </Typography>
           
           {/* Time Period Display */}
           {timeRemaining !== null && (
             <Box sx={{ mb: 1 }}>
               <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
-                <AccessTime fontSize="small" color={getTimeDisplayColor(timeRemaining, campaign.hasTimeLimit)} />
+                <AccessTime fontSize="small" color={getTimeDisplayColor(timeRemaining, localCampaign.hasTimeLimit)} />
                 <Typography 
                   variant="caption" 
-                  color={getTimeDisplayColor(timeRemaining, campaign.hasTimeLimit)}
+                  color={getTimeDisplayColor(timeRemaining, localCampaign.hasTimeLimit)}
                   fontWeight={600}
                 >
-                  {campaign.hasTimeLimit && campaign.endDate 
+                  {localCampaign.hasTimeLimit && localCampaign.endDate 
                     ? formatTimeRemaining(timeRemaining)
                     : `${timeRemaining} days ago`
                   }
                 </Typography>
               </Stack>
-              {timeProgress !== null && campaign.hasTimeLimit && campaign.endDate && (
+              {timeProgress !== null && localCampaign.hasTimeLimit && localCampaign.endDate && (
                 <LinearProgress
                   variant="determinate"
                   value={timeProgress}
-                  color={getTimeDisplayColor(timeRemaining, campaign.hasTimeLimit)}
+                  color={getTimeDisplayColor(timeRemaining, localCampaign.hasTimeLimit)}
                   sx={{ height: 4, borderRadius: 2 }}
                 />
               )}
@@ -341,19 +355,19 @@ function CampaignCard({
               sx={{ height: 17, borderRadius: 4 }}
             />
             <Typography variant="caption" color="text.secondary">
-              ${campaign.amountReceived} raised of ${campaign.amountNeeded} goal ({progress}%)
+              ${localCampaign.amountReceived} raised of ${localCampaign.amountNeeded} goal ({progress}%)
             </Typography>
           </Box>
 
-          {mode === 'mine' && campaign.status === 'rejected' && campaign.adminComment && (
+          {mode === 'mine' && localCampaign.status === 'rejected' && localCampaign.adminComment && (
             <Typography variant="caption" color="error" sx={{ mb: 1, display: 'block' }}>
-              Admin: {campaign.adminComment}
+              Admin: {localCampaign.adminComment}
             </Typography>
           )}
         </Box>
         <Box sx={{ mt: 1 }}>
           <Stack direction="row" spacing={1}>
-            {mode === 'mine' && campaign.status !== 'approved' && (
+            {mode === 'mine' && localCampaign.status !== 'approved' && (
               <>
                 <Tooltip title="Edit">
                   <IconButton color="primary" onClick={onEdit}><Edit /></IconButton>
@@ -363,7 +377,7 @@ function CampaignCard({
                 </Tooltip>
               </>
             )}
-            {mode === 'other' && campaign.status === 'approved' && !isOwnCampaign && !isExpired && (
+            {mode === 'other' && localCampaign.status === 'approved' && !isOwnCampaign && !isExpired && (
               <Button
                 variant="contained"
                 color="success"
@@ -383,22 +397,55 @@ function CampaignCard({
               Details
             </Button>
             {/* Only show like/comment/share buttons if not the user's own campaign */}
-            {!isOwnCampaign && (
-              <Box>
-                <IconButton size="small" color={liked ? 'error' : 'default'} onClick={handleLike} sx={{ p: 0.5 }}>
-                  {liked ? <Favorite fontSize="small" /> : <FavoriteBorder fontSize="small" />}
-                </IconButton>
-                <Typography variant="caption" color="text.secondary">{likeCount}</Typography>
-                <IconButton size="small" color="primary" onClick={openCommentModal} sx={{ p: 0.5 }}>
-                  <ChatBubbleOutline fontSize="small" />
-                </IconButton>
-                <Typography variant="caption" color="text.secondary">{commentCount}</Typography>
-                <IconButton size="small" color="primary" onClick={e => { e.stopPropagation(); alert('Share feature coming soon!'); }}>
-                  <Share fontSize="small" />
-                </IconButton>
-              </Box>
+            {mode === 'other' && !isOwnCampaign && (
+              <>
+                <Tooltip title={liked ? 'Unlike' : 'Like'}>
+                  <IconButton
+                    size="small"
+                    onClick={handleLike}
+                    color={liked ? 'primary' : 'default'}
+                  >
+                    {liked ? <Favorite /> : <FavoriteBorder />}
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Comments">
+                  <IconButton size="small" onClick={openCommentModal}>
+                    <ChatBubbleOutline />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Share">
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      if (navigator.share) {
+                        navigator.share({
+                          title: localCampaign.title,
+                          text: localCampaign.description,
+                          url: window.location.href
+                        });
+                      } else {
+                        navigator.clipboard.writeText(window.location.href);
+                        alert('Link copied to clipboard!');
+                      }
+                    }}
+                  >
+                    <Share />
+                  </IconButton>
+                </Tooltip>
+              </>
             )}
           </Stack>
+          {/* Like and comment counts */}
+          {mode === 'other' && !isOwnCampaign && (
+            <Stack direction="row" spacing={2} sx={{ mt: 1 }}>
+              <Typography variant="caption" color="text.secondary">
+                {likeCount} {likeCount === 1 ? 'like' : 'likes'}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {commentCount} {commentCount === 1 ? 'comment' : 'comments'}
+              </Typography>
+            </Stack>
+          )}
         </Box>
       </CardContent>
 
@@ -446,8 +493,8 @@ function CampaignCard({
       <DonationAmountModal
         open={amountModalOpen}
         onClose={() => setAmountModalOpen(false)}
-        maxAmount={campaign.amountNeeded - campaign.amountReceived}
-        campaign={campaign}
+        maxAmount={localCampaign.amountNeeded - localCampaign.amountReceived}
+        campaign={localCampaign}
         onSuccess={handleAmountSuccess}
       />
     </Card>
