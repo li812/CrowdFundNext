@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Box, Typography, Grid, CircularProgress, Alert, Divider, MenuItem, Select, FormControl, InputLabel, Stack, Button, Chip } from '@mui/material';
-import { Refresh, Clear, CheckCircle, Cancel, Warning, EmojiEvents } from '@mui/icons-material';
+import { Refresh, Clear, CheckCircle, Cancel, Warning } from '@mui/icons-material';
 import CampaignCard from '../../components/Card/CampainCard/CampainCard';
 import CampaignDetailsModal from '../../components/Card/CampainCard/CampaignDetailsModal';
 // Optionally import country-state-city for real data
@@ -245,8 +245,7 @@ function UserHome() {
 
   // Group campaigns by status
   const activeCampaigns = campaigns.filter(c => c.status === 'approved');
-  const fundedCampaigns = campaigns.filter(c => c.status === 'funded');
-  const completedCampaigns = campaigns.filter(c => c.status === 'completed');
+  const completedCampaigns = campaigns.filter(c => c.status === 'completed' || c.status === 'funded');
   const expiredCampaigns = campaigns.filter(c => c.status === 'expired' || c.status === 'failed');
 
   return (
@@ -367,28 +366,7 @@ function UserHome() {
         </>
       )}
 
-      {/* Funded Campaigns Section */}
-      {fundedCampaigns.length > 0 && (
-        <>
-          <Typography variant="h4" fontWeight={900} sx={{ mb: 2, color: 'success.main', display: 'flex', alignItems: 'center', gap: 1 }}>
-            <EmojiEvents color="success" sx={{ mr: 1 }} /> Funded Campaigns
-          </Typography>
-          <Grid container spacing={2} sx={{ mb: 4 }}>
-            {fundedCampaigns.map((campaign) => (
-              <Grid item xs={12} sm={6} md={4} key={campaign._id}>
-                <CampaignCard
-                  campaign={campaign}
-                  mode="other"
-                  onViewDetails={() => handleViewDetails(campaign)}
-                  onDonate={handleDonate}
-                />
-              </Grid>
-            ))}
-          </Grid>
-        </>
-      )}
-
-      {/* Completed Campaigns Section */}
+      {/* Completed Campaigns Section (includes funded and completed) */}
       {completedCampaigns.length > 0 && (
         <>
           <Typography variant="h4" fontWeight={900} sx={{ mb: 2, color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>

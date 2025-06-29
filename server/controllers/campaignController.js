@@ -213,11 +213,13 @@ async function updateCampaign(req, res) {
   }
 }
 
-// List all approved campaigns (for discovery)
+// List all homepage-relevant campaigns (for discovery)
 async function getAllCampaigns(req, res) {
   try {
     const { sort = 'new', limit = 6, type, country, state, city, page = 1 } = req.query;
-    const query = { status: 'approved' };
+    // Allow homepage to show all relevant statuses
+    const allowedStatuses = ['approved', 'funded', 'completed', 'expired', 'failed'];
+    const query = { status: { $in: allowedStatuses } };
     
     // Handle isActive field - include both active campaigns and old campaigns without isActive field
     query.$or = [

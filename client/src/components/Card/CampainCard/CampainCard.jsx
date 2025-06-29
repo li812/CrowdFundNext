@@ -230,15 +230,10 @@ function CampaignCard({
       });
       const data = await res.json();
       if (data.success) {
-        // Update local campaign data
-        setLocalCampaign(prev => ({
-          ...prev,
-          amountReceived: prev.amountReceived + amount
-        }));
+        setLocalCampaign(data.campaign);
         setAmountModalOpen(false);
-        // Call the parent's onDonate callback if provided
         if (onDonate) {
-          onDonate(amount);
+          onDonate(data.campaign);
         }
       }
     } catch (error) {

@@ -153,12 +153,7 @@ function CampaignDetailsModal({ open, campaign, onClose }) {
               View Support Document
             </Button>
           )}
-          {/* Creator info (if available) */}
-          {campaign.createdBy && (
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-              Created by: {campaign.createdBy.firstName || ''} {campaign.createdBy.lastName || ''}
-            </Typography>
-          )}
+          
         </Stack>
       </DialogContent>
       <DialogActions>
