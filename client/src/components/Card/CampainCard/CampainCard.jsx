@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Card, CardContent, CardMedia, Typography, Box, Button, Chip, Stack, LinearProgress, IconButton, Tooltip, Link as MuiLink, Dialog, DialogTitle, DialogContent, DialogActions, TextField, CircularProgress
+  Card, CardContent, CardMedia, Typography, Box, Button, Chip, Stack, LinearProgress, IconButton, Tooltip, Link as MuiLink, Dialog, DialogTitle, DialogContent, DialogActions, TextField, CircularProgress, Snackbar
 } from '@mui/material';
-import { Edit, Delete, AttachMoney, Info, ArrowBackIos, ArrowForwardIos, PictureAsPdf, Link as LinkIcon, Lock, Share, FavoriteBorder, Favorite, ChatBubbleOutline, AccessTime, Timer, CheckCircle, Cancel, EmojiEvents, Warning } from '@mui/icons-material';
+import { Edit, Delete, AttachMoney, Info, ArrowBackIos, ArrowForwardIos, PictureAsPdf, Link as LinkIcon, Lock, Share, FavoriteBorder, Favorite, ChatBubbleOutline, AccessTime, Timer, CheckCircle, Cancel, EmojiEvents, Warning, AccountBalanceWallet } from '@mui/icons-material';
 import DonationAmountModal from './DonationAmountModal';
 
 function CampaignCard({
@@ -260,6 +260,51 @@ function CampaignCard({
     return getUrgencyColor(days);
   };
 
+  // Add Withdraw button handler
+  const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [bankDetails, setBankDetails] = useState({ accountNumber: '', ifsc: '', name: '' });
+  const [withdrawLoading, setWithdrawLoading] = useState(false);
+  const [withdrawError, setWithdrawError] = useState('');
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
+  const handleWithdrawClick = () => {
+    setWithdrawModalOpen(true);
+    setWithdrawAmount(campaign.withdrawableAmount || '');
+    setBankDetails({ accountNumber: '', ifsc: '', name: '' });
+    setWithdrawError('');
+  };
+  const handleWithdrawClose = () => {
+    setWithdrawModalOpen(false);
+    setWithdrawError('');
+  };
+  const handleWithdrawSubmit = async () => {
+    setWithdrawLoading(true);
+    setWithdrawError('');
+    try {
+      const token = localStorage.getItem('jwt');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/campaigns/${campaign._id}/withdraw`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          amount: Number(withdrawAmount),
+          accountNumber: bankDetails.accountNumber,
+          ifsc: bankDetails.ifsc,
+          name: bankDetails.name
+        })
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Withdrawal failed');
+      setSnackbar({ open: true, message: 'Withdrawal successful!', severity: 'success' });
+      setWithdrawModalOpen(false);
+      setLocalCampaign(data.campaign);
+    } catch (err) {
+      setWithdrawError(err.message || 'Withdrawal failed');
+    } finally {
+      setWithdrawLoading(false);
+    }
+  };
+
   return (
     <Card sx={{
       maxWidth: 350,
@@ -428,7 +473,8 @@ function CampaignCard({
         </Box>
         <Box sx={{ mt: 1 }}>
           <Stack direction="row" spacing={1}>
-            {mode === 'mine' && localCampaign.status !== 'approved' && (
+            {/* Only show Edit/Delete if not in a final state */}
+            {mode === 'mine' && !['completed','funded','failed','expired','rejected'].includes(localCampaign.status) && (
               <>
                 <Tooltip title="Edit">
                   <IconButton color="primary" onClick={onEdit}><Edit /></IconButton>
@@ -437,6 +483,18 @@ function CampaignCard({
                   <IconButton color="error" onClick={onDelete}><Delete /></IconButton>
                 </Tooltip>
               </>
+            )}
+            {/* Withdraw button for campaign creator, only if withdrawableAmount > 0 */}
+            {mode === 'mine' && campaign.withdrawableAmount > 0 && (
+              <Button
+                variant="contained"
+                color="info"
+                startIcon={<AccountBalanceWallet />}
+                size="small"
+                onClick={handleWithdrawClick}
+              >
+                Withdraw
+              </Button>
             )}
             {canDonate && (
               <Button
@@ -578,6 +636,63 @@ function CampaignCard({
           <Button onClick={closeCommentModal}>Close</Button>
         </DialogActions>
       </Dialog>
+
+      {/* Withdraw Modal */}
+      <Dialog open={withdrawModalOpen} onClose={handleWithdrawClose} maxWidth="xs" fullWidth>
+        <DialogTitle>Withdraw Funds</DialogTitle>
+        <DialogContent>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>Withdrawable Amount: <b>${campaign.withdrawableAmount}</b></Typography>
+          <TextField
+            label="Amount"
+            type="number"
+            fullWidth
+            value={withdrawAmount}
+            onChange={e => setWithdrawAmount(e.target.value)}
+            inputProps={{ min: 1, max: campaign.withdrawableAmount }}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            label="Account Number"
+            fullWidth
+            value={bankDetails.accountNumber}
+            onChange={e => setBankDetails({ ...bankDetails, accountNumber: e.target.value })}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            label="IFSC Code"
+            fullWidth
+            value={bankDetails.ifsc}
+            onChange={e => setBankDetails({ ...bankDetails, ifsc: e.target.value })}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            label="Account Holder Name"
+            fullWidth
+            value={bankDetails.name}
+            onChange={e => setBankDetails({ ...bankDetails, name: e.target.value })}
+            sx={{ mb: 2 }}
+          />
+          {withdrawError && <Typography color="error" variant="body2">{withdrawError}</Typography>}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleWithdrawClose} disabled={withdrawLoading}>Cancel</Button>
+          <Button
+            onClick={handleWithdrawSubmit}
+            variant="contained"
+            color="info"
+            disabled={withdrawLoading || !withdrawAmount || withdrawAmount < 1 || withdrawAmount > campaign.withdrawableAmount || !bankDetails.accountNumber || !bankDetails.ifsc || !bankDetails.name}
+          >
+            {withdrawLoading ? <CircularProgress size={20} /> : 'Withdraw'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        message={snackbar.message}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      />
     </Card>
   );
 }

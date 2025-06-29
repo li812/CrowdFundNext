@@ -64,9 +64,7 @@ function DonationAmountModal({ open, onClose, maxAmount, campaign, onSuccess }) 
                 PayPal Error: {paypalError}
               </Alert>
             )}
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              <strong>Test Mode:</strong> Use PayPal sandbox test accounts. No real money will be charged.
-            </Typography>
+            
             <PayPalScriptProvider options={{ 
               'client-id': clientId,
               'currency': 'USD',

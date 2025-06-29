@@ -15,13 +15,13 @@ function UserCampaigns() {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
 
-  // Fetch user's campaigns
+  // Fetch user's campaigns with withdrawal info
   const fetchCampaigns = async () => {
     setLoading(true);
     setError('');
     try {
       const token = localStorage.getItem('jwt');
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/campaigns/my`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/campaigns/my-withdrawals`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -127,6 +127,11 @@ function UserCampaigns() {
         <Grid container spacing={2}>
           {campaigns.map((campaign) => (
             <Grid item xs={12} sm={6} md={4} key={campaign._id}>
+              <Box sx={{ mb: 1 }}>
+                <Typography variant="subtitle2" color="text.secondary">Total Collected: <b>${campaign.amountReceived?.toLocaleString() || 0}</b></Typography>
+                <Typography variant="subtitle2" color="text.secondary">Total Withdrawn: <b>${campaign.totalWithdrawn?.toLocaleString() || 0}</b></Typography>
+                <Typography variant="subtitle2" color="text.secondary">Withdrawable: <b>${campaign.withdrawableAmount?.toLocaleString() || 0}</b></Typography>
+              </Box>
               <CampaignCard
                 campaign={campaign}
                 mode="mine"
@@ -134,6 +139,17 @@ function UserCampaigns() {
                 onDelete={() => handleDelete(campaign)}
                 onViewDetails={() => handleViewDetails(campaign)}
               />
+              {/* Withdrawal History */}
+              {campaign.withdrawals && campaign.withdrawals.length > 0 && (
+                <Box sx={{ mt: 1, p: 1, bgcolor: '#f5f5f5', borderRadius: 2 }}>
+                  <Typography variant="subtitle2" fontWeight={700}>Withdrawal History</Typography>
+                  {campaign.withdrawals.map((w, idx) => (
+                    <Box key={idx} sx={{ fontSize: 13, mb: 0.5 }}>
+                      <b>${w.amount}</b> on {new Date(w.createdAt).toLocaleDateString()} ({w.status})
+                    </Box>
+                  ))}
+                </Box>
+              )}
             </Grid>
           ))}
         </Grid>

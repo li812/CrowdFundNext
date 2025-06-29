@@ -6,7 +6,7 @@ const {
   approveCampaign, rejectCampaign, donateToCampaign, deleteCampaign, updateCampaign, getAllCampaigns,
   likeCampaign, addComment, getComments, updateCampaignLifecycle, getCampaignStatistics,
   getCampaignsByStatus, updateCampaignStatus, leaderboardMostDonations, leaderboardMostAmount,
-  getPlatformImpactStats,
+  getPlatformImpactStats, getMyCampaignsWithWithdrawals, withdrawFromCampaign,
 } = require('../controllers/campaignController');
 
 const router = express.Router();
@@ -85,5 +85,11 @@ router.get('/leaderboard/most-amount', leaderboardMostAmount);
 
 // Public platform impact stats (for AboutPage)
 router.get('/impact-stats', getPlatformImpactStats);
+
+// User: list own campaigns with withdrawals
+router.get('/my-withdrawals', verifyFirebaseToken, getMyCampaignsWithWithdrawals);
+
+// User: withdraw from campaign
+router.post('/:id/withdraw', verifyFirebaseToken, withdrawFromCampaign);
 
 module.exports = router;

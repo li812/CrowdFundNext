@@ -856,6 +856,90 @@ async function getPlatformImpactStats(req, res) {
   }
 }
 
+// GET /api/campaigns/my-withdrawals
+async function getMyCampaignsWithWithdrawals(req, res) {
+  try {
+    const userId = req.user.uid;
+    const campaigns = await Campaign.find({ createdBy: userId }).lean();
+    const campaignIds = campaigns.map(c => c._id);
+    // Get all withdrawal transactions for these campaigns
+    const withdrawals = await Transaction.find({
+      campaignId: { $in: campaignIds },
+      type: 'withdrawal',
+      status: 'completed'
+    }).lean();
+    // Group withdrawals by campaignId
+    const withdrawalsByCampaign = {};
+    withdrawals.forEach(w => {
+      if (!withdrawalsByCampaign[w.campaignId]) withdrawalsByCampaign[w.campaignId] = [];
+      withdrawalsByCampaign[w.campaignId].push(w);
+    });
+    // Attach withdrawal info to each campaign
+    const result = campaigns.map(c => {
+      const wds = withdrawalsByCampaign[c._id] || [];
+      const totalWithdrawn = wds.reduce((sum, w) => sum + (w.amount || 0), 0);
+      const withdrawableAmount = (c.amountReceived || 0) - totalWithdrawn;
+      return {
+        ...c,
+        withdrawals: wds.map(w => ({ amount: w.amount, createdAt: w.createdAt, bankDetails: w.bankDetails, status: w.status })),
+        totalWithdrawn,
+        withdrawableAmount
+      };
+    });
+    res.json({ success: true, campaigns: result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message || 'Failed to fetch campaigns with withdrawals.' });
+  }
+}
+
+// POST /api/campaigns/:id/withdraw
+async function withdrawFromCampaign(req, res) {
+  try {
+    const userId = req.user.uid;
+    const { id } = req.params;
+    const { amount, accountNumber, ifsc, name } = req.body;
+    if (!amount || amount <= 0) return res.status(400).json({ success: false, error: 'Invalid amount.' });
+    if (!accountNumber || !ifsc || !name) return res.status(400).json({ success: false, error: 'All bank details are required.' });
+    const campaign = await Campaign.findById(id);
+    if (!campaign) return res.status(404).json({ success: false, error: 'Campaign not found.' });
+    if (campaign.createdBy !== userId) return res.status(403).json({ success: false, error: 'Forbidden.' });
+    const withdrawable = (campaign.amountReceived || 0) - (campaign.totalWithdrawn || 0);
+    if (amount > withdrawable) return res.status(400).json({ success: false, error: 'Amount exceeds withdrawable balance.' });
+    // Create withdrawal transaction
+    await Transaction.create({
+      userId,
+      campaignId: id,
+      amount,
+      type: 'withdrawal',
+      status: 'completed',
+      bankDetails: { accountNumber, ifsc, name }
+    });
+    // Update campaign's totalWithdrawn
+    campaign.totalWithdrawn = (campaign.totalWithdrawn || 0) + amount;
+    await campaign.save();
+    // Return updated campaign with withdrawal info
+    // (reuse getMyCampaignsWithWithdrawals logic for this campaign)
+    const withdrawals = await Transaction.find({
+      campaignId: id,
+      type: 'withdrawal',
+      status: 'completed'
+    }).lean();
+    const totalWithdrawn = withdrawals.reduce((sum, w) => sum + (w.amount || 0), 0);
+    const withdrawableAmount = (campaign.amountReceived || 0) - totalWithdrawn;
+    res.json({
+      success: true,
+      campaign: {
+        ...campaign.toObject(),
+        withdrawals: withdrawals.map(w => ({ amount: w.amount, createdAt: w.createdAt, bankDetails: w.bankDetails, status: w.status })),
+        totalWithdrawn,
+        withdrawableAmount
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message || 'Withdrawal failed.' });
+  }
+}
+
 module.exports = {
   createCampaign,
   getMyCampaigns,
@@ -879,4 +963,6 @@ module.exports = {
   leaderboardMostDonations,
   leaderboardMostAmount,
   getPlatformImpactStats,
+  getMyCampaignsWithWithdrawals,
+  withdrawFromCampaign,
 };

@@ -54,7 +54,8 @@ const CampaignSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
   }],
   createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  updatedAt: { type: Date, default: Date.now },
+  totalWithdrawn: { type: Number, default: 0 },
 });
 
 // Virtual for time remaining

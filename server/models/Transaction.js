@@ -15,6 +15,22 @@ const transactionSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  type: {
+    type: String,
+    enum: ['donation', 'withdrawal'],
+    required: true,
+    default: 'donation'
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'completed', 'failed'],
+    default: 'completed'
+  },
+  bankDetails: {
+    accountNumber: String,
+    ifsc: String,
+    name: String
+  },
   createdAt: {
     type: Date,
     default: Date.now
