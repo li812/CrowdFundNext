@@ -2,6 +2,9 @@
 
 **CrowdFundNext** is a full-stack, production-grade crowdfunding platform built with the **MERN stack** (MongoDB, Express, React, Node.js), featuring modern authentication, real payments, AI-powered campaign creation, robust admin/user management, and advanced file handling.
 
+![Cartoonic overview of CrowdFundNext platform features](image.png)
+*CrowdFundNext: Modern crowdfunding with AI, PayPal, file uploads, admin controls, and more!*
+
 ---
 
 ## 🏗️ Architecture Overview
