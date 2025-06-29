@@ -6,17 +6,6 @@
 
 ## 🏗️ Architecture Overview
 
-```mermaid
-graph TD;
-  A[React Frontend (Vite + MUI)] --|REST/JSON|--> B[Express.js API]
-  B --|Mongoose|--> C[MongoDB Atlas]
-  B --|Firebase Admin SDK|--> D[Firebase Auth]
-  A --|Firebase JS SDK|--> D
-  A --|PayPal JS SDK|--> E[PayPal API]
-  B --|Google GenAI SDK|--> F[AI Services]
-  B --|multer|--> G[File Storage (uploads/)]
-```
-
 - **Frontend:** React (Vite), Material UI, Firebase JS SDK, PayPal SDK
 - **Backend:** Node.js, Express, Firebase Admin SDK, Google GenAI, Multer
 - **Database:** MongoDB Atlas
