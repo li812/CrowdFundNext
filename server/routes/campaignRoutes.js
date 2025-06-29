@@ -5,7 +5,8 @@ const {
   createCampaign, getMyCampaigns, getPendingCampaigns,
   approveCampaign, rejectCampaign, donateToCampaign, deleteCampaign, updateCampaign, getAllCampaigns,
   likeCampaign, addComment, getComments, updateCampaignLifecycle, getCampaignStatistics,
-  getCampaignsByStatus, updateCampaignStatus, leaderboardMostDonations, leaderboardMostAmount
+  getCampaignsByStatus, updateCampaignStatus, leaderboardMostDonations, leaderboardMostAmount,
+  getPlatformImpactStats,
 } = require('../controllers/campaignController');
 
 const router = express.Router();
@@ -81,5 +82,8 @@ router.patch('/:campaignId/status', verifyFirebaseToken, updateCampaignStatus);
 // Leaderboard routes
 router.get('/leaderboard/most-donations', leaderboardMostDonations);
 router.get('/leaderboard/most-amount', leaderboardMostAmount);
+
+// Public platform impact stats (for AboutPage)
+router.get('/impact-stats', getPlatformImpactStats);
 
 module.exports = router;

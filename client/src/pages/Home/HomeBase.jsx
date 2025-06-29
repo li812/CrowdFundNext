@@ -70,7 +70,7 @@ const HomeBase = () => {
             }}
           >
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              © 2024 CrowdFundNext. All rights reserved.
+              © 2025 CrowdFundNext. All rights reserved.
             </Typography>
             <Typography variant="caption" color="text.disabled">
               Empowering dreams through community support

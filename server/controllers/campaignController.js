@@ -820,6 +820,42 @@ async function leaderboardMostAmount(req, res) {
   }
 }
 
+// Platform Impact Stats (for AboutPage)
+async function getPlatformImpactStats(req, res) {
+  try {
+    // Total campaigns
+    const totalCampaigns = await Campaign.countDocuments();
+    // Total funds raised
+    const fundsAgg = await Transaction.aggregate([
+      { $group: { _id: null, total: { $sum: '$amount' } } }
+    ]);
+    const totalFundsRaised = fundsAgg[0]?.total || 0;
+    // Active supporters (unique donors)
+    const supportersAgg = await Transaction.aggregate([
+      { $group: { _id: '$userId' } },
+      { $count: 'count' }
+    ]);
+    const activeSupporters = supportersAgg[0]?.count || 0;
+    // Success rate (percentage of campaigns with isSuccessful true)
+    const [successful, total] = await Promise.all([
+      Campaign.countDocuments({ isSuccessful: true }),
+      Campaign.countDocuments()
+    ]);
+    const successRate = total > 0 ? Math.round((successful / total) * 100) : 0;
+    res.json({
+      success: true,
+      stats: {
+        totalCampaigns,
+        totalFundsRaised,
+        activeSupporters,
+        successRate
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+}
+
 module.exports = {
   createCampaign,
   getMyCampaigns,
@@ -842,4 +878,5 @@ module.exports = {
   updateCampaignStatus,
   leaderboardMostDonations,
   leaderboardMostAmount,
+  getPlatformImpactStats,
 };

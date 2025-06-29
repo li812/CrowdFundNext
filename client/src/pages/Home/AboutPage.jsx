@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Container, Typography, Box, Grid, Card, CardContent, 
   useTheme, Stack, Chip, Avatar, Divider 
@@ -9,6 +9,7 @@ import {
   School, Business, Psychology, Engineering
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import CircularProgress from '@mui/material/CircularProgress';
 
 // Import images for AboutPage
 import whyImage1 from '/images/whyImages/1.png';
@@ -34,7 +35,7 @@ const heroGradient = (theme) =>
     ? 'linear-gradient(120deg, #3a86ff 0%, #36f1cd 40%, #ffe066 70%, #ff4d6d 100%)'
     : 'linear-gradient(120deg, #3a86ff 0%, #36f1cd 40%, #ffe066 70%, #ff4d6d 100%)';
 
-const AboutPage = () => {
+const AboutPage = ({ missionVision: mv, coreValues: cv, stats: st, team: tm }) => {
   const theme = useTheme();
 
   // Animation variants
@@ -54,7 +55,7 @@ const AboutPage = () => {
   };
 
   // Mission & Vision
-  const missionVision = [
+  const missionVision = mv || [
     {
       icon: <EmojiObjects sx={{ fontSize: 48, color: theme.palette.primary.main }} />,
       title: 'Our Mission',
@@ -70,7 +71,7 @@ const AboutPage = () => {
   ];
 
   // Core Values
-  const coreValues = [
+  const coreValues = cv || [
     {
       icon: <People sx={{ fontSize: 32, color: theme.palette.primary.main }} />,
       title: 'Community First',
@@ -93,39 +94,62 @@ const AboutPage = () => {
     }
   ];
 
-  // Statistics
+  // Live Impact Stats
+  const [impactStats, setImpactStats] = useState(null);
+  const [impactLoading, setImpactLoading] = useState(true);
+  const [impactError, setImpactError] = useState('');
+
+  useEffect(() => {
+    setImpactLoading(true);
+    setImpactError('');
+    fetch(`${import.meta.env.VITE_API_URL}/api/campaigns/impact-stats`)
+      .then(r => r.json())
+      .then(res => {
+        if (!res.success) throw new Error(res.error || 'Failed to load impact stats');
+        setImpactStats(res.stats);
+      })
+      .catch(err => setImpactError(err.message || 'Failed to load impact stats'))
+      .finally(() => setImpactLoading(false));
+  }, []);
+
   const stats = [
-    { number: '10K+', label: 'Campaigns Launched', icon: <TrendingUp /> },
-    { number: '$2M+', label: 'Total Funds Raised', icon: <Star /> },
-    { number: '50K+', label: 'Active Supporters', icon: <People /> },
-    { number: '95%', label: 'Success Rate', icon: <EmojiObjects /> }
+    {
+      number: impactStats ? impactStats.totalCampaigns.toLocaleString() : '-',
+      label: 'Campaigns Launched',
+      icon: <TrendingUp />
+    },
+    {
+      number: impactStats ? `$${impactStats.totalFundsRaised.toLocaleString()}` : '-',
+      label: 'Total Funds Raised',
+      icon: <Star />
+    },
+    {
+      number: impactStats ? impactStats.activeSupporters.toLocaleString() : '-',
+      label: 'Active Supporters',
+      icon: <People />
+    },
+    {
+      number: impactStats ? `${impactStats.successRate}%` : '-',
+      label: 'Success Rate',
+      icon: <EmojiObjects />
+    }
   ];
 
-  // Team (Mock data - you can replace with real team info)
-  const team = [
+  // Team (Ali Ahammad)
+  const team = tm || [
     {
-      name: 'Alex Chen',
-      role: 'Founder & CEO',
-      avatar: <School sx={{ fontSize: 40 }} />,
-      bio: 'Former student entrepreneur passionate about democratizing funding opportunities.'
-    },
-    {
-      name: 'Sarah Johnson',
-      role: 'Head of Product',
-      avatar: <Business sx={{ fontSize: 40 }} />,
-      bio: 'Product visionary with 8+ years experience in fintech and user experience design.'
-    },
-    {
-      name: 'Marcus Rodriguez',
-      role: 'CTO',
-      avatar: <Engineering sx={{ fontSize: 40 }} />,
-      bio: 'Tech leader focused on building secure, scalable platforms for the future.'
-    },
-    {
-      name: 'Dr. Emily Watson',
-      role: 'Head of Community',
-      avatar: <Psychology sx={{ fontSize: 40 }} />,
-      bio: 'Community expert dedicated to fostering meaningful connections and support networks.'
+      name: 'Ali Ahammad',
+      role: 'Aspiring Software Developer',
+      avatar: <Avatar sx={{ width: 80, height: 80, bgcolor: theme.palette.primary.main, color: 'white', fontSize: 40 }}>A</Avatar>,
+      bio: `Aspiring software developer with hands-on experience in web development using React.js, backend API design, and AI-powered solutions including Generative AI. Proven ability to integrate machine learning models into full-stack cloud applications for real-world use cases. Strong academic foundation with a passion for clean code, innovation, and continuous learning.`,
+      contact: {
+        address: '254, 12-Muri Nagar, 691020, Kerala, India',
+        phone: '+91 9895850894',
+        email: 'mail@aliahammad.com',
+        website: 'www.aliahammad.com',
+        github: 'https://github.com/li812',
+        linkedin: 'https://linkedin.com/in/ali-ahammad-li0812'
+      }
     }
   ];
 
@@ -317,6 +341,7 @@ const AboutPage = () => {
       <Container maxWidth="lg" sx={{ py: { xs: 4, md: 8 } }}>
         <motion.div
           initial="hidden"
+          alignContent= 'center'
           whileInView="visible"
           viewport={{ once: true }}
           variants={staggerContainer}
@@ -336,56 +361,62 @@ const AboutPage = () => {
           >
             Our Impact
           </Typography>
-          <Grid container spacing={3}>
-            {stats.map((stat, index) => (
-              <Grid item xs={6} md={3} key={stat.label}>
-                <motion.div variants={fadeInUp}>
-                  <Card
-                    sx={{
-                      ...glassStyle(theme),
-                      p: 3,
-                      textAlign: 'center',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        transform: 'scale(1.05)',
-                        boxShadow: '0 12px 40px 0 rgba(58, 134, 255, 0.25)'
-                      }
-                    }}
-                  >
-                    <Box sx={{ 
-                      mb: 2, 
-                      color: theme.palette.primary.main,
-                      display: 'flex',
-                      justifyContent: 'center'
-                    }}>
-                      {stat.icon}
-                    </Box>
-                    <Typography
-                      variant="h3"
-                      component="div"
-                      fontWeight="bold"
+          {impactLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', my: 6 }}><CircularProgress /></Box>
+          ) : impactError ? (
+            <Typography color="error" textAlign="center">{impactError}</Typography>
+          ) : (
+            <Grid container spacing={3} alignContent= 'center'>
+              {stats.map((stat, index) => (
+                <Grid item xs={6} md={3} key={stat.label} alignContent= 'center'>
+                  <motion.div variants={fadeInUp} alignContent= 'center'>
+                    <Card
                       sx={{
-                        background: heroGradient(theme),
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        fontSize: { xs: '2rem', md: '2.5rem' },
-                        mb: 1
+                        ...glassStyle(theme),
+                        p: 3,
+                        textAlign: 'center',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          transform: 'scale(1.05)',
+                          boxShadow: '0 12px 40px 0 rgba(58, 134, 255, 0.25)'
+                        }
                       }}
                     >
-                      {stat.number}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ fontWeight: 500 }}
-                    >
-                      {stat.label}
-                    </Typography>
-                  </Card>
-                </motion.div>
-              </Grid>
-            ))}
-          </Grid>
+                      <Box sx={{ 
+                        mb: 2, 
+                        color: theme.palette.primary.main,
+                        display: 'flex',
+                        justifyContent: 'center'
+                      }}>
+                        {stat.icon}
+                      </Box>
+                      <Typography
+                        variant="h3"
+                        component="div"
+                        fontWeight="bold"
+                        sx={{
+                          background: heroGradient(theme),
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                          fontSize: { xs: '2rem', md: '2.5rem' },
+                          mb: 1
+                        }}
+                      >
+                        {stat.number}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ fontWeight: 500 }}
+                      >
+                        {stat.label}
+                      </Typography>
+                    </Card>
+                  </motion.div>
+                </Grid>
+              ))}
+            </Grid>
+          )}
         </motion.div>
       </Container>
 
@@ -533,64 +564,57 @@ const AboutPage = () => {
             color="text.secondary"
             sx={{ mb: { xs: 4, md: 6 }, fontSize: { xs: '1rem', md: '1.2rem' } }}
           >
-            The passionate individuals behind CrowdFundNext
+            The passionate individual behind CrowdFundNext
           </Typography>
-          <Grid container spacing={4}>
-            {team.map((member, index) => (
-              <Grid item xs={12} sm={6} md={3} key={member.name}>
-                <motion.div variants={fadeInUp}>
-                  <Card
-                    sx={{
-                      ...glassStyle(theme),
-                      p: 3,
-                      textAlign: 'center',
-                      height: '100%',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        transform: 'translateY(-8px)',
-                        boxShadow: '0 16px 48px 0 rgba(58, 134, 255, 0.25)'
-                      }
-                    }}
-                  >
-                    <Avatar
-                      sx={{
-                        width: 80,
-                        height: 80,
-                        mx: 'auto',
-                        mb: 2,
-                        bgcolor: theme.palette.primary.main,
-                        color: 'white'
-                      }}
-                    >
-                      {member.avatar}
-                    </Avatar>
-                    <Typography
-                      variant="h6"
-                      component="h3"
-                      fontWeight="bold"
-                      sx={{ mb: 0.5, fontSize: { xs: '1.1rem', md: '1.3rem' } }}
-                    >
-                      {member.name}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="primary"
-                      sx={{ mb: 2, fontWeight: 600 }}
-                    >
-                      {member.role}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ lineHeight: 1.5 }}
-                    >
-                      {member.bio}
-                    </Typography>
-                  </Card>
-                </motion.div>
-              </Grid>
-            ))}
-          </Grid>
+          <Box display="flex" justifyContent="center">
+            <motion.div variants={fadeInUp}>
+              <Card
+                sx={{
+                  ...glassStyle(theme),
+                  p: 4,
+                  textAlign: 'left',
+                  maxWidth: 700,
+                  mx: 'auto',
+                  borderRadius: 5,
+                  boxShadow: '0 8px 32px 0 #3a86ff22',
+                  mb: 4
+                }}
+              >
+                <Box display="flex" alignItems="center" gap={3} mb={2}>
+                  <Avatar sx={{ width: 90, height: 90, fontSize: 48, bgcolor: theme.palette.primary.main, color: 'white' }}>A</Avatar>
+                  <Box>
+                    <Typography variant="h5" fontWeight={900} mb={0.5}>Ali Ahammad</Typography>
+                    <Typography variant="subtitle1" color="primary" fontWeight={700} mb={1}>Aspiring Software Developer</Typography>
+                    <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+                      <Typography variant="body2" color="text.secondary">254, 12-Muri Nagar, 691020, Kerala, India</Typography>
+                      <Divider orientation="vertical" flexItem />
+                      <Typography variant="body2" color="text.secondary">+91 9895850894</Typography>
+                      <Divider orientation="vertical" flexItem />
+                      <Typography variant="body2" color="text.secondary">mail@aliahammad.com</Typography>
+                    </Stack>
+                    <Stack direction="row" spacing={2} alignItems="center" mt={1}>
+                      <a href="https://www.aliahammad.com" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                        <Chip label="Website" color="primary" variant="outlined" size="small" />
+                      </a>
+                      <a href="https://github.com/li812" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                        <Chip label="GitHub" color="secondary" variant="outlined" size="small" />
+                      </a>
+                      <a href="https://linkedin.com/in/ali-ahammad-li0812" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                        <Chip label="LinkedIn" color="info" variant="outlined" size="small" />
+                      </a>
+                    </Stack>
+                  </Box>
+                </Box>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="body1" color="text.secondary" mb={2}>
+                  Aspiring software developer with hands-on experience in web development using React.js, backend API design, and AI-powered solutions including Generative AI. Proven ability to integrate machine learning models into full-stack cloud applications for real-world use cases. Strong academic foundation with a passion for clean code, innovation, and continuous learning.
+                </Typography>
+
+                <Divider sx={{ my: 2 }} />
+
+              </Card>
+            </motion.div>
+          </Box>
         </motion.div>
       </Container>
 

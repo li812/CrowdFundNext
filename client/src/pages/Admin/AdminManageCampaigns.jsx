@@ -30,14 +30,16 @@ const glass3DGlowStyle = (theme) => ({
 const CAMPAIGN_TYPES = [
   'Tech', 'Education', 'Health', 'Art', 'Social Good', 'Environment', 'Startups', 'Student Life', 'Others'
 ];
-const STATUS_OPTIONS = ['all', 'pending', 'approved', 'active', 'finished', 'rejected'];
+const STATUS_OPTIONS = ['all', 'pending', 'approved', 'rejected', 'expired', 'completed', 'funded', 'failed'];
 
 const statusColors = {
   pending: 'warning',
   approved: 'success',
-  active: 'info',
-  finished: 'secondary',
   rejected: 'error',
+  expired: 'default',
+  completed: 'secondary',
+  funded: 'info',
+  failed: 'error',
 };
 
 function AdminManageCampaigns() {
