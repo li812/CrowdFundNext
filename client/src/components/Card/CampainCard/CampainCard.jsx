@@ -474,7 +474,7 @@ function CampaignCard({
         <Box sx={{ mt: 1 }}>
           <Stack direction="row" spacing={1}>
             {/* Only show Edit/Delete if not in a final state */}
-            {mode === 'mine' && !['completed','funded','failed','expired','rejected'].includes(localCampaign.status) && (
+            {mode === 'mine' && !['completed','funded','failed','expired','rejected','approved'].includes(localCampaign.status) && (
               <>
                 <Tooltip title="Edit">
                   <IconButton color="primary" onClick={onEdit}><Edit /></IconButton>
@@ -496,7 +496,7 @@ function CampaignCard({
                 Withdraw
               </Button>
             )}
-            {canDonate && (
+            {mode === 'other' && !isOwnCampaign && canDonate && !isOwnCampaign && (
               <Button
                 variant="contained"
                 color="success"

@@ -139,17 +139,7 @@ function UserCampaigns() {
                 onDelete={() => handleDelete(campaign)}
                 onViewDetails={() => handleViewDetails(campaign)}
               />
-              {/* Withdrawal History */}
-              {campaign.withdrawals && campaign.withdrawals.length > 0 && (
-                <Box sx={{ mt: 1, p: 1, bgcolor: '#f5f5f5', borderRadius: 2 }}>
-                  <Typography variant="subtitle2" fontWeight={700}>Withdrawal History</Typography>
-                  {campaign.withdrawals.map((w, idx) => (
-                    <Box key={idx} sx={{ fontSize: 13, mb: 0.5 }}>
-                      <b>${w.amount}</b> on {new Date(w.createdAt).toLocaleDateString()} ({w.status})
-                    </Box>
-                  ))}
-                </Box>
-              )}
+              
             </Grid>
           ))}
         </Grid>
