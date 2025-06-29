@@ -31,7 +31,7 @@ function LeaderboardBlock({ title, icon, endpoint, statKey, statLabel, statIcon 
   }, [endpoint]);
 
   return (
-    <Paper elevation={4} sx={{ p: 3, borderRadius: 4, minWidth: 320, flex: 1, mx: 1, mb: { xs: 3, md: 0 } }}>
+    <Paper elevation={4} sx={{ p: 3, borderRadius: 2, minWidth: 320, flex: 1, mx: 1, mb: { xs: 3, md: 0 } }}>
       <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
         {icon}
         <Typography variant="h5" fontWeight={800}>{title}</Typography>
@@ -48,7 +48,7 @@ function LeaderboardBlock({ title, icon, endpoint, statKey, statLabel, statIcon 
           const medalColors = ['#FFD700', '#C0C0C0', '#CD7F32'];
           return (
             <Paper key={user.userId} elevation={isTop3 ? 6 : 1} sx={{
-              display: 'flex', alignItems: 'center', p: 1.5, mb: 1.2, borderRadius: 2,
+              display: 'flex', alignItems: 'center', p: 1.5, mb: 1.2, borderRadius: 1,
               bgcolor: isTop3 ? medalColors[idx] + '22' : 'background.paper',
               border: isTop3 ? `2px solid ${medalColors[idx]}` : '1px solid #eee',
               gap: 2
