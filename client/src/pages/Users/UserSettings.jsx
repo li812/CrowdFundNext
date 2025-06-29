@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Box, Card, Typography, Tabs, Tab } from '@mui/material';
-import ProfileForm from './components/ProfileForm';
-import PasswordChangeDialog from './components/PasswordChangeDialog';
-import DeleteAccountDialog from './components/DeleteAccountDialog';
+import ProfileForm from '../../components/UserComponents/ProfileForm';
+import PasswordChangeDialog from '../../components/UserComponents/PasswordChangeDialog';
+import DeleteAccountDialog from '../../components/UserComponents/DeleteAccountDialog';
 
 function UserSettings() {
   const [tab, setTab] = useState(0);

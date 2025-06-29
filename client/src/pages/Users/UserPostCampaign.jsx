@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import {
-  Box, Paper, Typography, TextField, Button, MenuItem, Grid, IconButton, Stack, Chip, InputAdornment, Alert, Fade
+  Box, Paper, Typography, TextField, Button, MenuItem, Grid, IconButton, Stack, Chip, InputAdornment, Alert, Fade, Switch, FormControlLabel, RadioGroup, Radio, FormControl, FormLabel
 } from '@mui/material';
-import { PhotoCamera, UploadFile, Link as LinkIcon, Delete } from '@mui/icons-material';
+import { PhotoCamera, UploadFile, Link as LinkIcon, Delete, AccessTime, AutoAwesome } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { motion } from 'framer-motion';
 import AIGenerateModal from '../../components/Card/CampainCard/AIGenerateModal';
@@ -91,13 +91,18 @@ function UserPostCampaign() {
     amount: '',
     photos: [],
     supportDoc: null,
-    links: ['']
+    links: [''],
+    // Time period configuration
+    hasTimeLimit: false,
+    timeLimitType: 'fixed',
+    endDate: '',
+    maxDuration: 30
   });
   const [errors, setErrors] = useState({});
   const [photoPreviews, setPhotoPreviews] = useState([]);
   const [supportDocName, setSupportDocName] = useState('');
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [aiModalOpen, setAIModalOpen] = useState(false);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
 
   // Validation
   const validate = () => {
@@ -111,6 +116,33 @@ function UserPostCampaign() {
     if (form.photos.length > MAX_PHOTOS) errs.photos = `Max ${MAX_PHOTOS} photos`;
     if (form.links.some(link => link && !/^https?:\/\/.+\..+/.test(link))) errs.links = 'Enter valid URLs';
     if (form.links.length > MAX_LINKS) errs.links = `Max ${MAX_LINKS} links`;
+    
+    // Time period validation
+    if (form.hasTimeLimit) {
+      if (form.timeLimitType === 'fixed' && !form.endDate) {
+        errs.endDate = 'End date is required for fixed time limit campaigns';
+      } else if (form.timeLimitType === 'fixed' && form.endDate) {
+        const endDate = new Date(form.endDate);
+        const now = new Date();
+        if (endDate <= now) {
+          errs.endDate = 'End date must be in the future';
+        }
+        const daysDiff = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+        if (daysDiff > 365) {
+          errs.endDate = 'Campaign duration cannot exceed 365 days';
+        }
+        if (daysDiff < 1) {
+          errs.endDate = 'Campaign must run for at least 1 day';
+        }
+      }
+      
+      if (form.timeLimitType === 'flexible') {
+        if (form.maxDuration < 1 || form.maxDuration > 365) {
+          errs.maxDuration = 'Maximum duration must be between 1 and 365 days';
+        }
+      }
+    }
+    
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -119,6 +151,21 @@ function UserPostCampaign() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm(f => ({ ...f, [name]: value }));
+    setErrors(e => ({ ...e, [name]: undefined }));
+  };
+
+  const handleTimeLimitChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setForm(f => ({ 
+      ...f, 
+      [name]: type === 'checkbox' ? checked : value,
+      // Reset related fields when time limit is disabled
+      ...(name === 'hasTimeLimit' && !checked && {
+        timeLimitType: 'fixed',
+        endDate: '',
+        maxDuration: 30
+      })
+    }));
     setErrors(e => ({ ...e, [name]: undefined }));
   };
 
@@ -175,6 +222,17 @@ function UserPostCampaign() {
     formData.append('title', form.title);
     formData.append('description', form.description);
     formData.append('amountNeeded', form.amount);
+    
+    // Time period data
+    formData.append('hasTimeLimit', form.hasTimeLimit);
+    if (form.hasTimeLimit) {
+      formData.append('timeLimitType', form.timeLimitType);
+      if (form.timeLimitType === 'fixed') {
+        formData.append('endDate', form.endDate);
+      } else if (form.timeLimitType === 'flexible') {
+        formData.append('maxDuration', form.maxDuration);
+      }
+    }
 
     // Photos
     form.photos.forEach(photo => {
@@ -210,7 +268,7 @@ function UserPostCampaign() {
         return;
       }
       setSubmitSuccess(true);
-      // Optionally reset form here
+      // Reset form
       setForm({
         type: '',
         title: '',
@@ -218,7 +276,11 @@ function UserPostCampaign() {
         amount: '',
         photos: [],
         supportDoc: null,
-        links: ['']
+        links: [''],
+        hasTimeLimit: false,
+        timeLimitType: 'fixed',
+        endDate: '',
+        maxDuration: 30
       });
       setPhotoPreviews([]);
       setSupportDocName('');
@@ -228,9 +290,29 @@ function UserPostCampaign() {
     }
   };
 
-  // Handler for AI modal selection
+  // Calculate minimum date (tomorrow)
+  const getMinDate = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
+  };
+
+  // Calculate maximum date (1 year from now)
+  const getMaxDate = () => {
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + 365);
+    return maxDate.toISOString().split('T')[0];
+  };
+
+  const handleAIGenerate = () => {
+    setAiModalOpen(true);
+  };
+
   const handleAISelect = (field, value) => {
-    setForm(f => ({ ...f, [field]: value }));
+    setForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   return (
@@ -250,7 +332,7 @@ function UserPostCampaign() {
           elevation={0}
           sx={{
             ...glass3DGlowStyle(theme),
-            maxWidth: 600,
+            maxWidth: 700,
             width: '100%',
             mx: 'auto',
             p: { xs: 2, sm: 4 },
@@ -281,9 +363,17 @@ function UserPostCampaign() {
             </Typography>
             <Button
               variant="outlined"
-              color="primary"
-              onClick={() => setAIModalOpen(true)}
-              sx={{ fontWeight: 600, ml: 2, whiteSpace: 'nowrap' }}
+              startIcon={<AutoAwesome />}
+              onClick={handleAIGenerate}
+              sx={{
+                borderRadius: 2,
+                borderColor: theme.palette.primary.main,
+                color: theme.palette.primary.main,
+                '&:hover': {
+                  borderColor: theme.palette.primary.dark,
+                  backgroundColor: theme.palette.primary.main + '10'
+                }
+              }}
             >
               Generate with AI
             </Button>
@@ -303,6 +393,7 @@ function UserPostCampaign() {
               {errors.general}
             </Alert>
           )}
+          
           <Grid container spacing={2}>
             {/* Type */}
             <Grid item xs={12} minWidth='180px' sx={{ mb: 2 }}>
@@ -321,12 +412,8 @@ function UserPostCampaign() {
                   <MenuItem minWidth='120px' key={type} value={type}>{type}</MenuItem>
                 ))}
               </TextField>
-              
             </Grid>
 
-            <Grid item xs={12}>
- 
-            </Grid>
             {/* Title */}
             <Grid item xs={12} minWidth='500px'>
               <TextField
@@ -341,6 +428,7 @@ function UserPostCampaign() {
                 helperText={errors.title || `${form.title.length}/${MAX_TITLE}`}
               />
             </Grid>
+            
             {/* Description */}
             <Grid item xs={12} minWidth='500px'>
               <TextField
@@ -357,7 +445,6 @@ function UserPostCampaign() {
                 helperText={errors.description || `${form.description.length}/${MAX_DESC}`}
               />
             </Grid>
-            {/* AI Generate Button */}
 
             {/* Amount */}
             <Grid item xs={12} minWidth='500px'>
@@ -377,6 +464,101 @@ function UserPostCampaign() {
                 helperText={errors.amount}
               />
             </Grid>
+
+            {/* Time Period Configuration */}
+            <Grid item xs={12}>
+              <Box sx={{ 
+                border: `1px solid ${theme.palette.divider}`, 
+                borderRadius: 2, 
+                p: 2, 
+                bgcolor: 'background.paper' 
+              }}>
+                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+                  <AccessTime color="primary" />
+                  <Typography variant="h6" fontWeight={600}>
+                    Campaign Duration
+                  </Typography>
+                </Stack>
+                
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={form.hasTimeLimit}
+                      onChange={handleTimeLimitChange}
+                      name="hasTimeLimit"
+                      color="primary"
+                    />
+                  }
+                  label="Set a time limit for this campaign"
+                  sx={{ mb: 2 }}
+                />
+                
+                {form.hasTimeLimit && (
+                  <Box sx={{ ml: 4 }}>
+                    <FormControl component="fieldset" sx={{ mb: 2 }}>
+                      <FormLabel component="legend">Time Limit Type</FormLabel>
+                      <RadioGroup
+                        name="timeLimitType"
+                        value={form.timeLimitType}
+                        onChange={handleTimeLimitChange}
+                        row
+                      >
+                        <FormControlLabel 
+                          value="fixed" 
+                          control={<Radio />} 
+                          label="Fixed End Date" 
+                        />
+                        <FormControlLabel 
+                          value="flexible" 
+                          control={<Radio />} 
+                          label="Flexible (Until Goal Reached)" 
+                        />
+                      </RadioGroup>
+                    </FormControl>
+                    
+                    {form.timeLimitType === 'fixed' && (
+                      <TextField
+                        label="End Date"
+                        name="endDate"
+                        type="date"
+                        value={form.endDate}
+                        onChange={handleTimeLimitChange}
+                        fullWidth
+                        required
+                        inputProps={{
+                          min: getMinDate(),
+                          max: getMaxDate()
+                        }}
+                        error={!!errors.endDate}
+                        helperText={errors.endDate || "Campaign will end on this date regardless of funding progress"}
+                      />
+                    )}
+                    
+                    {form.timeLimitType === 'flexible' && (
+                      <TextField
+                        label="Maximum Duration (days)"
+                        name="maxDuration"
+                        type="number"
+                        value={form.maxDuration}
+                        onChange={handleTimeLimitChange}
+                        fullWidth
+                        required
+                        inputProps={{ min: 1, max: 365 }}
+                        error={!!errors.maxDuration}
+                        helperText={errors.maxDuration || "Campaign will continue until goal is reached or this duration is exceeded"}
+                      />
+                    )}
+                  </Box>
+                )}
+                
+                {!form.hasTimeLimit && (
+                  <Typography variant="body2" color="text.secondary" sx={{ ml: 4 }}>
+                    Campaign will run indefinitely until manually stopped or goal is reached.
+                  </Typography>
+                )}
+              </Box>
+            </Grid>
+
             {/* Photos */}
             <Grid item xs={12} minWidth='200px'>
               <Typography variant="subtitle1" sx={{ mb: 1 }}>Photos (optional, up to 5)</Typography>
@@ -429,7 +611,7 @@ function UserPostCampaign() {
                   <Button
                     variant="outlined"
                     startIcon={<UploadFile />}
-                    component="span" // <-- This is the key!
+                    component="span"
                   >
                     {supportDocName ? 'Change PDF' : 'Upload PDF'}
                   </Button>
@@ -445,6 +627,7 @@ function UserPostCampaign() {
               </Stack>
               {errors.supportDoc && <Typography color="error" variant="caption">{errors.supportDoc}</Typography>}
             </Grid>
+            
             {/* URL Links */}
             <Grid item xs={12} minWidth='500px'>
               <Typography variant="subtitle1" sx={{ mb: 1 }}>URL Links (optional, up to 5)</Typography>
@@ -476,6 +659,7 @@ function UserPostCampaign() {
                 {errors.links && <Typography color="error" variant="caption">{errors.links}</Typography>}
               </Stack>
             </Grid>
+            
             {/* Submit */}
             <Grid item xs={12}>
               <Button
@@ -497,14 +681,15 @@ function UserPostCampaign() {
               </Button>
             </Grid>
           </Grid>
-          {/* AI Modal */}
-          <AIGenerateModal
-            open={aiModalOpen}
-            onClose={() => setAIModalOpen(false)}
-            onSelect={handleAISelect}
-          />
         </Paper>
       </Fade>
+
+      {/* AI Generate Modal */}
+      <AIGenerateModal
+        open={aiModalOpen}
+        onClose={() => setAiModalOpen(false)}
+        onSelect={handleAISelect}
+      />
     </Box>
   );
 }

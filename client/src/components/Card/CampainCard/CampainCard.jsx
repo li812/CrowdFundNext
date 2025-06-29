@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Card, CardContent, CardMedia, Typography, Box, Button, Chip, Stack, LinearProgress, IconButton, Tooltip, Link as MuiLink, Dialog, DialogTitle, DialogContent, DialogActions, TextField, CircularProgress
 } from '@mui/material';
-import { Edit, Delete, AttachMoney, Info, ArrowBackIos, ArrowForwardIos, PictureAsPdf, Link as LinkIcon, Lock, Share, FavoriteBorder, Favorite, ChatBubbleOutline } from '@mui/icons-material';
+import { Edit, Delete, AttachMoney, Info, ArrowBackIos, ArrowForwardIos, PictureAsPdf, Link as LinkIcon, Lock, Share, FavoriteBorder, Favorite, ChatBubbleOutline, AccessTime, Timer } from '@mui/icons-material';
 import DonationAmountModal from './DonationAmountModal';
 
 function CampaignCard({
@@ -26,11 +26,65 @@ function CampaignCard({
     Math.round((campaign.amountReceived / campaign.amountNeeded) * 100)
   );
 
+  // Time period calculations
+  const [timeRemaining, setTimeRemaining] = useState(null);
+  const [timeProgress, setTimeProgress] = useState(null);
+  const [isExpired, setIsExpired] = useState(false);
+
+  useEffect(() => {
+    console.log('Campaign time data:', {
+      hasTimeLimit: campaign.hasTimeLimit,
+      endDate: campaign.endDate,
+      createdAt: campaign.createdAt,
+      timeLimitType: campaign.timeLimitType
+    });
+
+    if (campaign.hasTimeLimit && campaign.endDate) {
+      const updateTime = () => {
+        const now = new Date();
+        const end = new Date(campaign.endDate);
+        const diff = end - now;
+        
+        if (diff <= 0) {
+          setTimeRemaining(0);
+          setIsExpired(true);
+        } else {
+          setTimeRemaining(Math.ceil(diff / (1000 * 60 * 60 * 24)));
+          setIsExpired(false);
+        }
+
+        // Calculate time progress
+        const start = new Date(campaign.createdAt);
+        const total = end - start;
+        const elapsed = now - start;
+        setTimeProgress(Math.min(100, Math.max(0, (elapsed / total) * 100)));
+      };
+
+      updateTime();
+      const interval = setInterval(updateTime, 60000); // Update every minute
+      return () => clearInterval(interval);
+    } else {
+      // For campaigns without explicit time limits, show days since creation
+      const now = new Date();
+      const created = new Date(campaign.createdAt);
+      const daysSinceCreation = Math.ceil((now - created) / (1000 * 60 * 60 * 24));
+      setTimeRemaining(daysSinceCreation);
+      setTimeProgress(null);
+      setIsExpired(false);
+    }
+  }, [campaign.hasTimeLimit, campaign.endDate, campaign.createdAt, campaign.timeLimitType]);
+
   // Status color
   const statusColor =
     campaign.status === 'approved' ? 'success' :
       campaign.status === 'pending' ? 'warning' :
-        campaign.status === 'rejected' ? 'error' : 'default';
+        campaign.status === 'rejected' ? 'error' :
+          campaign.status === 'expired' ? 'error' :
+            campaign.status === 'completed' ? 'success' : 'default';
+
+  // Check if current user is the creator of this campaign
+  const currentUserId = localStorage.getItem('userId');
+  const isOwnCampaign = currentUserId && campaign.createdBy === currentUserId;
 
   // Carousel controls
   const handlePrev = (e) => {
@@ -158,6 +212,30 @@ function CampaignCard({
     }
   };
 
+  // Format time remaining
+  const formatTimeRemaining = (days) => {
+    if (days === 0) return 'Ended';
+    if (days === 1) return '1 day left';
+    if (days < 7) return `${days} days left`;
+    if (days < 30) return `${Math.ceil(days / 7)} weeks left`;
+    return `${Math.ceil(days / 30)} months left`;
+  };
+
+  // Get urgency color
+  const getUrgencyColor = (days) => {
+    if (days === 0) return 'error';
+    if (days <= 3) return 'error';
+    if (days <= 7) return 'warning';
+    if (days <= 30) return 'info';
+    return 'success';
+  };
+
+  // Get time display color based on campaign type
+  const getTimeDisplayColor = (days, hasTimeLimit) => {
+    if (!hasTimeLimit) return 'text.secondary'; // For campaigns without time limits
+    return getUrgencyColor(days);
+  };
+
   return (
     <Card sx={{
       maxWidth: 350,
@@ -227,6 +305,34 @@ function CampaignCard({
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }} >
             {campaign.description}
           </Typography>
+          
+          {/* Time Period Display */}
+          {timeRemaining !== null && (
+            <Box sx={{ mb: 1 }}>
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
+                <AccessTime fontSize="small" color={getTimeDisplayColor(timeRemaining, campaign.hasTimeLimit)} />
+                <Typography 
+                  variant="caption" 
+                  color={getTimeDisplayColor(timeRemaining, campaign.hasTimeLimit)}
+                  fontWeight={600}
+                >
+                  {campaign.hasTimeLimit && campaign.endDate 
+                    ? formatTimeRemaining(timeRemaining)
+                    : `${timeRemaining} days ago`
+                  }
+                </Typography>
+              </Stack>
+              {timeProgress !== null && campaign.hasTimeLimit && campaign.endDate && (
+                <LinearProgress
+                  variant="determinate"
+                  value={timeProgress}
+                  color={getTimeDisplayColor(timeRemaining, campaign.hasTimeLimit)}
+                  sx={{ height: 4, borderRadius: 2 }}
+                />
+              )}
+            </Box>
+          )}
+          
           <Box sx={{ mb: 1 }}>
             <LinearProgress
               variant="determinate"
@@ -257,7 +363,7 @@ function CampaignCard({
                 </Tooltip>
               </>
             )}
-            {mode === 'other' && campaign.status === 'approved' && (
+            {mode === 'other' && campaign.status === 'approved' && !isOwnCampaign && !isExpired && (
               <Button
                 variant="contained"
                 color="success"
@@ -276,19 +382,22 @@ function CampaignCard({
             >
               Details
             </Button>
-            <Box>
-              <IconButton size="small" color={liked ? 'error' : 'default'} onClick={handleLike} sx={{ p: 0.5 }}>
-                {liked ? <Favorite fontSize="small" /> : <FavoriteBorder fontSize="small" />}
-              </IconButton>
-              <Typography variant="caption" color="text.secondary">{likeCount}</Typography>
-              <IconButton size="small" color="primary" onClick={openCommentModal} sx={{ p: 0.5 }}>
-                <ChatBubbleOutline fontSize="small" />
-              </IconButton>
-              <Typography variant="caption" color="text.secondary">{commentCount}</Typography>
-              <IconButton size="small" color="primary" onClick={e => { e.stopPropagation(); alert('Share feature coming soon!'); }}>
-                <Share fontSize="small" />
-              </IconButton>
-            </Box>
+            {/* Only show like/comment/share buttons if not the user's own campaign */}
+            {!isOwnCampaign && (
+              <Box>
+                <IconButton size="small" color={liked ? 'error' : 'default'} onClick={handleLike} sx={{ p: 0.5 }}>
+                  {liked ? <Favorite fontSize="small" /> : <FavoriteBorder fontSize="small" />}
+                </IconButton>
+                <Typography variant="caption" color="text.secondary">{likeCount}</Typography>
+                <IconButton size="small" color="primary" onClick={openCommentModal} sx={{ p: 0.5 }}>
+                  <ChatBubbleOutline fontSize="small" />
+                </IconButton>
+                <Typography variant="caption" color="text.secondary">{commentCount}</Typography>
+                <IconButton size="small" color="primary" onClick={e => { e.stopPropagation(); alert('Share feature coming soon!'); }}>
+                  <Share fontSize="small" />
+                </IconButton>
+              </Box>
+            )}
           </Stack>
         </Box>
       </CardContent>

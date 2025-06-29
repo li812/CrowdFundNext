@@ -47,11 +47,11 @@ router.patch(
 // User: delete campaign
 router.delete('/:id', verifyFirebaseToken, deleteCampaign);
 
-// Public: list all approved campaigns (discovery)
-router.get('/', getAllCampaigns);
+// List all approved campaigns (discovery) - requires auth to exclude user's own campaigns
+router.get('/', verifyFirebaseToken, getAllCampaigns);
 
-// Public: get available countries and states for filters
-router.get('/available-countries-states', require('../controllers/campaignController').getAvailableCountriesAndStates);
+// Get available countries and states for filters (requires auth to exclude user's own campaigns)
+router.get('/available-countries-states', verifyFirebaseToken, require('../controllers/campaignController').getAvailableCountriesAndStates);
 
 // Like/unlike a campaign
 router.post('/:id/like', verifyFirebaseToken, likeCampaign);

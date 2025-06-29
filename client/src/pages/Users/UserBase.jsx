@@ -7,7 +7,7 @@ import { Home, Settings, Logout, Search, Brightness4, Brightness7 } from '@mui/i
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
 import { useTheme } from '@mui/material/styles';
-import { useThemeMode } from '../../context/ThemeContext'; // <-- FIXED
+import { useThemeMode } from '../../context/ThemeContext';
 import UserTopNavBar from '../../components/NavBar/UserTopNavBar/UserTopNavBar';
 
 // Glassmorphic + 3D glow style

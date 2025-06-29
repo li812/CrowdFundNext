@@ -5,11 +5,54 @@ const Transaction = require('../models/Transaction');
 // Create campaign (user)
 async function createCampaign(req, res) {
   try {
-    const { type, title, description, amountNeeded, links } = req.body;
-    const photos = req.files['photos']?.map(f => `/uploads/campaign_photos/${f.filename}`) || [];
+    const { type, title, description, amountNeeded, links, hasTimeLimit, timeLimitType, endDate, maxDuration } = req.body;
+    let photos = req.files['photos']?.map(f => `/uploads/campaign_photos/${f.filename}`) || [];
+
     const supportDocument = req.files['supportDoc']?.[0]?.filename
       ? `/uploads/campaign_docs/${req.files['supportDoc'][0].filename}`
       : undefined;
+
+    // Validate time period configuration
+    let validatedEndDate = null;
+    let validatedMaxDuration = 90;
+
+    if (hasTimeLimit === 'true' || hasTimeLimit === true) {
+      if (!timeLimitType || !['fixed', 'flexible'].includes(timeLimitType)) {
+        return res.status(400).json({ error: 'Time limit type must be either "fixed" or "flexible"' });
+      }
+
+      if (timeLimitType === 'fixed') {
+        if (!endDate) {
+          return res.status(400).json({ error: 'End date is required for fixed time limit campaigns' });
+        }
+        validatedEndDate = new Date(endDate);
+        
+        // Validate end date is in the future
+        const now = new Date();
+        if (validatedEndDate <= now) {
+          return res.status(400).json({ error: 'End date must be in the future' });
+        }
+        
+        // Validate campaign duration (max 365 days)
+        const daysDiff = Math.ceil((validatedEndDate - now) / (1000 * 60 * 60 * 24));
+        if (daysDiff > 365) {
+          return res.status(400).json({ error: 'Campaign duration cannot exceed 365 days' });
+        }
+        if (daysDiff < 1) {
+          return res.status(400).json({ error: 'Campaign must run for at least 1 day' });
+        }
+      } else if (timeLimitType === 'flexible') {
+        if (maxDuration) {
+          validatedMaxDuration = parseInt(maxDuration);
+          if (validatedMaxDuration < 1 || validatedMaxDuration > 365) {
+            return res.status(400).json({ error: 'Maximum duration must be between 1 and 365 days' });
+          }
+        }
+        // For flexible campaigns, set end date to max duration from now
+        validatedEndDate = new Date();
+        validatedEndDate.setDate(validatedEndDate.getDate() + validatedMaxDuration);
+      }
+    }
 
     const campaign = new Campaign({
       type,
@@ -22,7 +65,14 @@ async function createCampaign(req, res) {
       createdBy: req.user.uid,
       status: 'pending',
       amountReceived: 0,
+      hasTimeLimit: hasTimeLimit === 'true' || hasTimeLimit === true,
+      timeLimitType: timeLimitType || 'fixed',
+      endDate: validatedEndDate,
+      maxDuration: validatedMaxDuration,
+      isActive: true,
+      daysRemaining: validatedEndDate ? Math.ceil((validatedEndDate - new Date()) / (1000 * 60 * 60 * 24)) : null,
     });
+    
     await campaign.save();
     res.status(201).json({ success: true, campaign });
   } catch (err) {
@@ -159,23 +209,126 @@ async function updateCampaign(req, res) {
 // List all approved campaigns (for discovery)
 async function getAllCampaigns(req, res) {
   try {
-    const { sort = 'new', limit = 6, type } = req.query;
+    const { sort = 'new', limit = 6, type, country, state, city, page = 1 } = req.query;
     const query = { status: 'approved' };
+    
+    // Handle isActive field - include both active campaigns and old campaigns without isActive field
+    query.$or = [
+      { isActive: true },
+      { isActive: { $exists: false } } // Old campaigns without isActive field
+    ];
+    
     if (type) query.type = type;
-    let campaignsQuery = Campaign.find(query);
-    // Sorting
-    if (sort === 'new') {
-      campaignsQuery = campaignsQuery.sort({ createdAt: -1 });
-    } else if (sort === 'popular') {
-      campaignsQuery = campaignsQuery.sort({ amountReceived: -1 });
-    } else if (sort === 'ending') {
-      campaignsQuery = campaignsQuery.sort({ updatedAt: -1 });
+    
+    // Exclude campaigns created by the current user (if authenticated)
+    if (req.user && req.user.uid) {
+      query.createdBy = { $ne: req.user.uid };
     }
-    // Limit
-    campaignsQuery = campaignsQuery.limit(Number(limit));
-    const campaigns = await campaignsQuery.exec();
-    res.json({ success: true, campaigns });
+    
+    // Build the aggregation pipeline
+    const pipeline = [
+      // Match campaigns based on basic criteria
+      { $match: query },
+      
+      // Lookup user data to get location information
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'createdBy',
+          foreignField: '_id',
+          as: 'creator'
+        }
+      },
+      
+      // Unwind the creator array
+      { $unwind: '$creator' },
+      
+      // Add location filters if provided
+      ...(country || state || city ? [{
+        $match: {
+          $and: [
+            ...(country ? [{ 'creator.country': country }] : []),
+            ...(state ? [{ 'creator.state': state }] : []),
+            ...(city ? [{ 'creator.city': city }] : [])
+          ]
+        }
+      }] : []),
+      
+      // Project the fields we need
+      {
+        $project: {
+          _id: 1,
+          type: 1,
+          title: 1,
+          description: 1,
+          amountNeeded: 1,
+          amountReceived: 1,
+          photos: 1,
+          links: 1,
+          status: 1,
+          isActive: 1,
+          hasTimeLimit: 1,
+          endDate: 1,
+          daysRemaining: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          likes: 1,
+          comments: 1,
+          progressPercentage: 1,
+          createdBy: 1,
+          'creator.firstName': 1,
+          'creator.lastName': 1,
+          'creator.email': 1,
+          'creator.country': 1,
+          'creator.state': 1,
+          'creator.city': 1
+        }
+      }
+    ];
+    
+    // Add sorting
+    let sortStage = {};
+    if (sort === 'new') {
+      sortStage = { createdAt: -1 };
+    } else if (sort === 'popular') {
+      sortStage = { amountReceived: -1 };
+    } else if (sort === 'ending') {
+      sortStage = { endDate: 1 }; // Sort by end date ascending (ending soon first)
+    } else if (sort === 'urgent') {
+      // Sort by campaigns ending soon and not fully funded
+      sortStage = { 
+        daysRemaining: 1, 
+        progressPercentage: -1 
+      };
+    }
+    
+    if (Object.keys(sortStage).length > 0) {
+      pipeline.push({ $sort: sortStage });
+    }
+    
+    // Add pagination
+    const skip = (Number(page) - 1) * Number(limit);
+    pipeline.push({ $skip: skip });
+    pipeline.push({ $limit: Number(limit) });
+    
+    const campaigns = await Campaign.aggregate(pipeline);
+    
+    // Transform the data to match the expected format
+    const transformedCampaigns = campaigns.map(campaign => ({
+      ...campaign,
+      creator: {
+        firstName: campaign.creator?.firstName,
+        lastName: campaign.creator?.lastName,
+        email: campaign.creator?.email,
+        country: campaign.creator?.country,
+        state: campaign.creator?.state,
+        city: campaign.creator?.city
+      }
+    }));
+    
+    res.json({ success: true, campaigns: transformedCampaigns });
   } catch (err) {
+    console.error('getAllCampaigns error:', err);
     res.status(500).json({ error: err.message });
   }
 }
@@ -198,13 +351,20 @@ async function getRecentUserActivity(req, res) {
 // Get available countries, states, and cities from users who created approved campaigns
 async function getAvailableCountriesAndStates(req, res) {
   try {
-    // Find all approved campaigns and their creators
-    const campaigns = await Campaign.find({ status: 'approved' }, 'createdBy');
+    // Find all approved campaigns and their creators, excluding current user
+    const query = { status: 'approved' };
+    if (req.user && req.user.uid) {
+      query.createdBy = { $ne: req.user.uid };
+    }
+    
+    const campaigns = await Campaign.find(query, 'createdBy');
     const userIds = campaigns.map(c => c.createdBy);
     const users = await User.find({ _id: { $in: userIds } }, 'country state city');
+    
     const countrySet = new Set();
     const stateMap = {};
     const cityMap = {};
+    
     users.forEach(u => {
       if (u.country) {
         countrySet.add(u.country);
@@ -219,9 +379,11 @@ async function getAvailableCountriesAndStates(req, res) {
         }
       }
     });
+    
     const countries = Array.from(countrySet);
     const states = {};
     const cities = {};
+    
     for (const country of countries) {
       states[country] = Array.from(stateMap[country] || []);
       cities[country] = {};
@@ -229,6 +391,7 @@ async function getAvailableCountriesAndStates(req, res) {
         cities[country][state] = Array.from((cityMap[country] && cityMap[country][state]) || []);
       }
     }
+    
     res.json({ success: true, countries, states, cities });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -282,6 +445,38 @@ async function getComments(req, res) {
   }
 }
 
+// Update expired campaigns (can be called by a cron job)
+async function updateExpiredCampaigns() {
+  try {
+    const now = new Date();
+    
+    // Find campaigns that have expired but still show as active
+    const expiredCampaigns = await Campaign.find({
+      status: 'approved',
+      isActive: true,
+      hasTimeLimit: true,
+      endDate: { $lt: now }
+    });
+
+    for (const campaign of expiredCampaigns) {
+      if (campaign.progressPercentage >= 100) {
+        campaign.status = 'completed';
+      } else {
+        campaign.status = 'expired';
+      }
+      campaign.isActive = false;
+      campaign.daysRemaining = 0;
+      await campaign.save();
+    }
+
+    console.log(`Updated ${expiredCampaigns.length} expired campaigns`);
+    return expiredCampaigns.length;
+  } catch (err) {
+    console.error('Error updating expired campaigns:', err);
+    throw err;
+  }
+}
+
 module.exports = {
   createCampaign,
   getMyCampaigns,
@@ -297,4 +492,5 @@ module.exports = {
   likeCampaign,
   addComment,
   getComments,
+  updateExpiredCampaigns,
 };
