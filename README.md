@@ -8,13 +8,13 @@
 
 ```mermaid
 graph TD;
-  A[React Frontend (Vite + MUI)] --REST/JSON--> B[Express.js API]
-  B --Mongoose--> C[MongoDB Atlas]
-  B --Firebase Admin SDK--> D[Firebase Auth]
-  A --Firebase JS SDK--> D
-  A --PayPal SDK--> E[PayPal API]
-  B --Google GenAI--> F[AI Services]
-  B --multer--> G[File Storage (uploads/)]
+  A[React Frontend (Vite + MUI)] --|REST/JSON|--> B[Express.js API]
+  B --|Mongoose|--> C[MongoDB Atlas]
+  B --|Firebase Admin SDK|--> D[Firebase Auth]
+  A --|Firebase JS SDK|--> D
+  A --|PayPal JS SDK|--> E[PayPal API]
+  B --|Google GenAI SDK|--> F[AI Services]
+  B --|multer|--> G[File Storage (uploads/)]
 ```
 
 - **Frontend:** React (Vite), Material UI, Firebase JS SDK, PayPal SDK
@@ -101,111 +101,4 @@ graph TD;
 - `PATCH /api/campaigns/:id` — Edit campaign (with file upload)
 - `DELETE /api/campaigns/:id` — Delete campaign (auto file cleanup)
 - `POST /api/campaigns/:id/donate` — Donate (PayPal)
-- `POST /api/campaigns/:id/withdraw` — Withdraw funds (creator only)
-- `GET /api/campaigns/my-withdrawals` — List own campaigns with withdrawal info
-- `GET /api/ai/generate` — AI content generation (title/description)
-- `GET /api/ai/chat` — Hoppy chatbot
-- `GET /api/admin/stats` — Platform stats (admin)
-
----
-
-## 🛡️ Security & Best Practices
-- **All secrets in `.env`** (never committed)
-- **JWT required for all protected endpoints**
-- **File uploads validated and sanitized**
-- **Fraud checks**: No overfunding, withdrawal limits, active campaign lock
-- **Automatic file cleanup**: No orphaned files
-
----
-
-## 🧪 Dev & Deployment
-
-### Prerequisites
-- Node.js, npm, Docker (optional)
-- Firebase project (for Auth)
-- PayPal developer account (for sandbox keys)
-
-### Setup
-- Copy `env.txt` to `.env` and fill in your secrets (Firebase, PayPal, MongoDB, etc.)
-- Place Firebase Admin SDK key in `server/config/`
-- Add Firebase web config to `client/src/utils/firebase.js`
-
-### Start the Project
-```bash
-docker-compose up --build
-# or run client and server separately
-```
-
-### Troubleshooting
-- **Firebase errors**: Check API keys and web config
-- **PayPal issues**: Use sandbox keys for dev, check client/server env
-- **MongoDB**: Ensure Atlas IP whitelist includes your dev machine
-
----
-
-## 📁 Folder Structure
-```
-CrowdFundNext/
-├── client/         → React frontend (Vite + Firebase)
-├── server/         → Node.js + Express + MongoDB + Firebase Admin
-├── env.txt         → Environment variable reference
-└── README.md       → You're here!
-```
-
----
-
-## 🧱 Libraries & Tools
-- React, React Router DOM
-- Material UI
-- Firebase JS SDK & Admin SDK
-- Mongoose
-- Vite (w/ SWC)
-- Docker
-- PayPal REST SDK
-- Google GenAI (Gemini)
-- Multer (file uploads)
-
----
-
-## 🚀 Unique Aspects
-- **AI-powered campaign creation and chatbot**
-- **Real PayPal payments (no overfunding)**
-- **Withdrawal system with anti-fraud logic**
-- **Automatic file cleanup on deletion**
-- **Admin dashboard with advanced filtering**
-- **Modern, responsive UI/UX**
-
----
-
-## 🧱 Future Features
-- Email notifications
-- Analytics dashboard for admin
-- More payment gateways (Stripe, Razorpay)
-- Campaign trending algorithm
-- Real-time chat/support
-
----
-
-## 🤝 Contributing
-1. Fork the repo
-2. Clone your fork
-3. Create a new branch: `git checkout -b feature-name`
-4. Make changes and commit: `git commit -m "Added new feature"`
-5. Push to branch: `git push origin feature-name`
-6. Open a pull request
-
----
-
-## 🧑‍💻 Author
-**Ali Ahammad (Li)**  
-[Portfolio](https://www.aliahammad.com/) | [LinkedIn](https://www.linkedin.com/in/ali-ahammad-li0812/) | [GitHub](https://github.com/li812)
-
----
-
-## 📝 License
-This project is for educational and academic use under the **MIT License**. See `LICENSE` for more info.
-
----
-
-## 💬 Feedback?
-Feel free to open an issue or share feedback through the platform once deployed!
+- `
