@@ -1,6 +1,8 @@
 const Campaign = require('../models/Campaign');
 const User = require('../models/Users');
 const Transaction = require('../models/Transaction');
+const fs = require('fs');
+const path = require('path');
 
 // Create campaign (user)
 async function createCampaign(req, res) {
@@ -155,8 +157,27 @@ async function deleteCampaign(req, res) {
     if (!campaign) return res.status(404).json({ error: 'Not found' });
     if (campaign.createdBy !== req.user.uid) return res.status(403).json({ error: 'Forbidden' });
     if (campaign.status === 'approved') return res.status(400).json({ error: 'Cannot delete approved campaign' });
-    // Optionally: remove files (photos/supportDoc)
-    // ...
+    // Remove files (photos/supportDoc)
+    if (campaign.photos && Array.isArray(campaign.photos)) {
+      for (const photo of campaign.photos) {
+        if (photo) {
+          const photoPath = path.join(__dirname, '..', photo);
+          fs.unlink(photoPath, (err) => {
+            if (err && err.code !== 'ENOENT') {
+              console.error('Failed to delete campaign photo:', err.message);
+            }
+          });
+        }
+      }
+    }
+    if (campaign.supportDocument) {
+      const docPath = path.join(__dirname, '..', campaign.supportDocument);
+      fs.unlink(docPath, (err) => {
+        if (err && err.code !== 'ENOENT') {
+          console.error('Failed to delete support document:', err.message);
+        }
+      });
+    }
     await campaign.deleteOne();
     res.json({ success: true });
   } catch (err) {

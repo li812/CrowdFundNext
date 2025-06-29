@@ -3,6 +3,7 @@ const admin = require('../config/firebase');
 const fs = require('fs');
 const path = require('path');
 const { setUserTypeClaim } = require('../services/firebaseService');
+const Campaign = require('../models/Campaign');
 
 async function registerUser(req, res) {
   try {
@@ -74,6 +75,12 @@ async function deleteCurrentUser(req, res) {
     // 1. Find user in MongoDB
     const user = await User.findById(uid);
     if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // 1.5. Check for active campaigns
+    const activeCampaigns = await Campaign.find({ createdBy: uid, status: { $in: ['pending', 'approved', 'funded', 'active'] } });
+    if (activeCampaigns.length > 0) {
+      return res.status(400).json({ error: 'Cannot delete account: you have active campaigns. Please finish or delete your campaigns first.' });
+    }
 
     // 2. Delete profile picture file if exists
     if (user.profilePicture) {
