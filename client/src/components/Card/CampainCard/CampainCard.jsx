@@ -305,6 +305,8 @@ function CampaignCard({
     }
   };
 
+  const remainingAmount = Math.max(0, localCampaign.amountNeeded - localCampaign.amountReceived);
+
   return (
     <Card sx={{
       maxWidth: 350,
@@ -496,7 +498,7 @@ function CampaignCard({
                 Withdraw
               </Button>
             )}
-            {mode === 'other' && !isOwnCampaign && canDonate && !isOwnCampaign && (
+            {mode === 'other' && !isOwnCampaign && canDonate && remainingAmount > 0 && (
               <Button
                 variant="contained"
                 color="success"
@@ -585,6 +587,7 @@ function CampaignCard({
         onClose={() => setAmountModalOpen(false)}
         onSuccess={handleAmountSuccess}
         campaign={localCampaign}
+        maxAmount={remainingAmount}
       />
 
       {/* Comment Modal */}
