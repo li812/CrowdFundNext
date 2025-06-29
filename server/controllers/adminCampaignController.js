@@ -4,11 +4,10 @@ const User = require('../models/Users');
 // List campaigns with filters, search, pagination, and creator info
 exports.listCampaigns = async (req, res) => {
   try {
-    const { status, type, country, search, page = 1, limit = 10 } = req.query;
+    const { status, type, country, state, search, page = 1, limit = 10 } = req.query;
     const query = {};
     if (status && status !== 'all') query.status = status;
     if (type && type !== 'all') query.type = type;
-    if (country && country !== 'all') query.country = country;
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: 'i' } },
@@ -26,11 +25,19 @@ exports.listCampaigns = async (req, res) => {
     const userIds = [...new Set(campaigns.map(c => c.createdBy))];
     const users = await User.find({ _id: { $in: userIds } }, 'firstName lastName email country state').lean();
     const userMap = Object.fromEntries(users.map(u => [u._id, u]));
-    const result = campaigns.map(c => ({
+    let result = campaigns.map(c => ({
       ...c,
       creator: userMap[c.createdBy] || null
     }));
-    res.json({ success: true, campaigns: result, total });
+    // Filter by country if provided
+    if (country && country !== 'all') {
+      result = result.filter(c => c.creator && c.creator.country === country);
+    }
+    // Filter by state if provided
+    if (state && state !== 'all') {
+      result = result.filter(c => c.creator && c.creator.state === state);
+    }
+    res.json({ success: true, campaigns: result, total: result.length });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message || 'Failed to fetch campaigns.' });
   }

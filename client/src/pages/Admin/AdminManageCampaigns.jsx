@@ -51,6 +51,7 @@ function AdminManageCampaigns() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [countryFilter, setCountryFilter] = useState('all');
+  const [stateFilter, setStateFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
@@ -68,6 +69,7 @@ function AdminManageCampaigns() {
         status: statusFilter,
         type: typeFilter,
         country: countryFilter,
+        state: stateFilter,
         search,
         page,
         limit
@@ -89,10 +91,16 @@ function AdminManageCampaigns() {
   useEffect(() => {
     fetchCampaigns();
     // eslint-disable-next-line
-  }, [statusFilter, typeFilter, countryFilter, search, page]);
+  }, [statusFilter, typeFilter, countryFilter, stateFilter, search, page]);
 
-  // Unique countries for filter
-  const countryOptions = ['all', ...Array.from(new Set(campaigns.map(c => c.country).filter(Boolean)))];
+  // Unique countries and states for filter
+  const countryOptions = ['all', ...Array.from(new Set(campaigns.map(c => c.country || c.creator?.country).filter(Boolean)))];
+  const stateOptions = ['all', ...Array.from(new Set(
+    campaigns
+      .filter(c => (countryFilter === 'all' || (c.country || c.creator?.country) === countryFilter))
+      .map(c => c.state || c.creator?.state)
+      .filter(Boolean)
+  ))];
 
   // Actions
   const handleApprove = async (campaign) => {
@@ -203,8 +211,14 @@ function AdminManageCampaigns() {
             </FormControl>
             <FormControl size="small" sx={{ minWidth: 120 }}>
               <InputLabel>Country</InputLabel>
-              <Select value={countryFilter} label="Country" onChange={e => { setCountryFilter(e.target.value); setPage(1); }}>
+              <Select value={countryFilter} label="Country" onChange={e => { setCountryFilter(e.target.value); setStateFilter('all'); setPage(1); }}>
                 {countryOptions.map(opt => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
+              </Select>
+            </FormControl>
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>State</InputLabel>
+              <Select value={stateFilter} label="State" onChange={e => { setStateFilter(e.target.value); setPage(1); }}>
+                {stateOptions.map(opt => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
               </Select>
             </FormControl>
             <TextField
