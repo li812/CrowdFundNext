@@ -723,7 +723,9 @@ const RegisterPage = ({ prefill = {}, isCompleteRegistration = false }) => {
                 fullWidth
                 variant="outlined"
                 size="large"
-                startIcon={<Google />}
+                startIcon={
+                  <img src="/google.png" alt="Google" style={{ width: 24, height: 24, display: 'block' }} />
+                }
                 onClick={handleGoogleSignUp}
                 disabled={isLoading}
                 sx={{

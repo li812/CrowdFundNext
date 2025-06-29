@@ -17,7 +17,6 @@ import {
   Lock,
   Visibility,
   VisibilityOff,
-  Google,
   Login as LoginIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -235,7 +234,9 @@ const LoginPage = () => {
             fullWidth
             variant="outlined"
             size="large"
-            startIcon={<Google />}
+            startIcon={
+              <img src="/google.png" alt="Google" style={{ width: 24, height: 24, display: 'block' }} />
+            }
             onClick={handleGoogleLogin}
             disabled={isLoading}
             sx={{
