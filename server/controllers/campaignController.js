@@ -750,6 +750,76 @@ async function updateCampaignStatus(req, res) {
   }
 }
 
+// Leaderboard: Most Donations (by count)
+async function leaderboardMostDonations(req, res) {
+  try {
+    const top = Number(req.query.top) || 10;
+    const pipeline = [
+      { $group: { _id: "$userId", donationCount: { $sum: 1 } } },
+      { $sort: { donationCount: -1 } },
+      { $limit: top },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "user"
+        }
+      },
+      { $unwind: "$user" },
+      {
+        $project: {
+          userId: "$_id",
+          donationCount: 1,
+          firstName: "$user.firstName",
+          lastName: "$user.lastName",
+          profilePicture: "$user.profilePicture",
+          country: "$user.country"
+        }
+      }
+    ];
+    const results = await require('../models/Transaction').aggregate(pipeline);
+    res.json({ success: true, leaderboard: results });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+// Leaderboard: Most Donated (by amount)
+async function leaderboardMostAmount(req, res) {
+  try {
+    const top = Number(req.query.top) || 10;
+    const pipeline = [
+      { $group: { _id: "$userId", totalDonated: { $sum: "$amount" } } },
+      { $sort: { totalDonated: -1 } },
+      { $limit: top },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "user"
+        }
+      },
+      { $unwind: "$user" },
+      {
+        $project: {
+          userId: "$_id",
+          totalDonated: 1,
+          firstName: "$user.firstName",
+          lastName: "$user.lastName",
+          profilePicture: "$user.profilePicture",
+          country: "$user.country"
+        }
+      }
+    ];
+    const results = await require('../models/Transaction').aggregate(pipeline);
+    res.json({ success: true, leaderboard: results });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+}
+
 module.exports = {
   createCampaign,
   getMyCampaigns,
@@ -770,4 +840,6 @@ module.exports = {
   getCampaignStatistics,
   getCampaignsByStatus,
   updateCampaignStatus,
+  leaderboardMostDonations,
+  leaderboardMostAmount,
 };

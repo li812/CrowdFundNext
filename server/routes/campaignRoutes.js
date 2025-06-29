@@ -5,7 +5,7 @@ const {
   createCampaign, getMyCampaigns, getPendingCampaigns,
   approveCampaign, rejectCampaign, donateToCampaign, deleteCampaign, updateCampaign, getAllCampaigns,
   likeCampaign, addComment, getComments, updateCampaignLifecycle, getCampaignStatistics,
-  getCampaignsByStatus, updateCampaignStatus
+  getCampaignsByStatus, updateCampaignStatus, leaderboardMostDonations, leaderboardMostAmount
 } = require('../controllers/campaignController');
 
 const router = express.Router();
@@ -77,5 +77,9 @@ router.get('/status/:status', verifyFirebaseToken, getCampaignsByStatus);
 
 // Update campaign status (admin only)
 router.patch('/:campaignId/status', verifyFirebaseToken, updateCampaignStatus);
+
+// Leaderboard routes
+router.get('/leaderboard/most-donations', leaderboardMostDonations);
+router.get('/leaderboard/most-amount', leaderboardMostAmount);
 
 module.exports = router;

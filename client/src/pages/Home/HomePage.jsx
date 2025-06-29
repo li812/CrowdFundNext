@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Container, Typography, Button, Grid, Card, CardContent, useTheme, Stack, Chip } from '@mui/material';
 import { TrendingUp, Security, People, Favorite, RocketLaunch, EmojiObjects, Diversity3, Star } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import Leaderboard from '../../components/Leaderboard/Leaderboard';
 
 // Import why images
 import whyImage1 from '/images/whyImages/1.png';
@@ -496,6 +497,9 @@ const HomePage = () => {
           ))}
         </Grid>
       </Container>
+
+      {/* Leaderboard Section */}
+      <Leaderboard />
 
       {/* About Section */}
       <Container maxWidth="lg" sx={{ py: { xs: 6, sm: 8, md: 10 }, px: { xs: 2, sm: 3, md: 4 } }}>

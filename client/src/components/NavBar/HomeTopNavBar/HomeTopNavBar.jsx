@@ -25,7 +25,7 @@ import {
   Brightness4,
   Brightness7,
   Home as HomeIcon,
-  Explore as ExploreIcon,
+  EmojiEvents as LeaderboardIcon,
   Info as InfoIcon,
   ContactMail as ContactIcon,
   AccountCircle
@@ -48,7 +48,7 @@ const glassNavStyle = (theme) => ({
 
 const navLinks = [
   { label: 'Home', path: '/', icon: <HomeIcon /> },
-  { label: 'Explore', path: '/explore', icon: <ExploreIcon /> },
+  { label: 'Leaderboard', path: '/home-leaderboard', icon: <LeaderboardIcon /> },
   { label: 'About', path: '/about', icon: <InfoIcon /> },
   { label: 'Contact', path: '/contact', icon: <ContactIcon /> }
 ];

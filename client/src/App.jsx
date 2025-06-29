@@ -26,6 +26,7 @@ import AdminDashboard from './pages/Admin/AdminDashboard';
 import AdminManageUsers from './pages/Admin/AdminManageUsers';
 import AdminManageCampaigns from './pages/Admin/AdminManageCampaigns';
 import AdminManageTransactions from './pages/Admin/AdminManageTransactions';
+import HomeLeaderBoard from './pages/Home/HomeLeaderBoard.jsx';
 
 const theme = createTheme({
   palette: {
@@ -97,6 +98,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/complete-register" element={<CompleteRegisterPage />} />
+            <Route path="/home-leaderboard" element={<HomeLeaderBoard />} />
           </Route>
           {/* Admin routes */}
           <Route path="/admin/*" element={<AdminBase />}>
